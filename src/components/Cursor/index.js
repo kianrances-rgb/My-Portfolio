@@ -1,3 +1,3 @@
 export { AstroCursor } from './AstroCursor';
 export { SiphonCanvas } from './SiphonCanvas';
-export default { AstroCursor, SiphonCanvas };
+export { default } from './AstroCursor';

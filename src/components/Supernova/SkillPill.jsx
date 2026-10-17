@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * SkillPill Component
  * Sleek cyber skill pill displaying technical skill name and proficiency level badge.

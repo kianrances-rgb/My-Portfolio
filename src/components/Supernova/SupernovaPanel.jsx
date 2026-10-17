@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { NeutronStar } from './NeutronStar';
 import { SkillPill } from './SkillPill';
 import { skillCategories } from '../../data/portfolioData';

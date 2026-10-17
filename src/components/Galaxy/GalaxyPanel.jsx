@@ -1,3 +1,4 @@
+import React from 'react';
 import { Andromeda } from './Andromeda';
 import { AcademicCard } from './AcademicCard';
 import { education } from '../../data/portfolioData';

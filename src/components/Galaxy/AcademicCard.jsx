@@ -1,4 +1,4 @@
-
+import React from 'react';
 /**
  * AcademicCard Component
  * Displays an educational attainment milestone across the cosmic spiral timeline.

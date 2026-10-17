@@ -2242,9 +2242,9 @@
   font-family: var(--font-display, 'Orbitron', sans-serif);
   font-weight: 900;
   letter-spacing: 0.16em;
-  text-shadow: 0 0 24px rgba(255, 255, 255, 0.55), 0 4px 20px rgba(0, 0, 0, 0.95);
-  mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 48%, rgba(0, 0, 0, 0.8) 72%, rgba(0, 0, 0, 0.2) 100%);
-  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 48%, rgba(0, 0, 0, 0.8) 72%, rgba(0, 0, 0, 0.2) 100%);
+  text-shadow: 0 0 24px rgba(255, 255, 255, 0.6), 0 4px 20px rgba(0, 0, 0, 0.95);
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 40%, rgba(0, 0, 0, 0.75) 62%, rgba(0, 0, 0, 0.15) 86%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 40%, rgba(0, 0, 0, 0.75) 62%, rgba(0, 0, 0, 0.15) 86%, transparent 100%);
 }
 
 .name-solid-base {

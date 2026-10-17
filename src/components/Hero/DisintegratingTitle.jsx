@@ -2,11 +2,15 @@ import React, { useEffect, useRef } from 'react';
 
 /**
  * DisintegratingTitle Component
- * Displays "KIAN RANCES CAGADAS" in pure solid white in the lower middle of Page 1.
- * - Solid readable lower letter stems.
- * - Upper half disintegrates into glowing white matter dust.
- * - Canvas spans the entire #intro section to pull dust particles straight
- *   UPWARD and INWARD into the exact center of the black hole singularity.
+ * Renders "KIAN RANCES CAGADAS" in pure solid white in the lower middle of Page 1.
+ * 
+ * Features:
+ * - Genuine letter-to-dust disintegration: particles peel directly off the pixel
+ *   contours of every letter stroke (sampled via offscreen canvas).
+ * - Powdery, soft stardust particles (microscopic circular grains, not sparks or lines).
+ * - Liquid-smooth gravitational streamline flow: exponential steering into the black hole
+ *   vortex with zero jerky motions or abrupt accelerations.
+ * - Solid, 100% readable lower stems with crumbling upper particulate erosion.
  * - Subtle status tag: "ARCHITECT / JUNIOR WEB & GAME DEVELOPER".
  */
 export function DisintegratingTitle() {
@@ -27,9 +31,76 @@ export function DisintegratingTitle() {
     let height = 0;
     let dpr = 1;
 
-    // Upward matter stream particles
+    // Sampled letter pixels array from the text
+    let letterPixels = [];
+
+    // Dense dust particle system (~650 active powdery grains)
     const particles = [];
-    const MAX_PARTICLES = 280;
+    const MAX_PARTICLES = 650;
+
+    // 1. Offscreen Text Pixel Sampler
+    // Renders the exact text "KIAN RANCES CAGADAS" to find exact letter stroke coordinates
+    const sampleTextPixels = () => {
+      const heroSection = canvas.closest('#intro') || document.getElementById('intro') || document.body;
+      const heroRect = heroSection.getBoundingClientRect();
+      const textRect = textEl.getBoundingClientRect();
+
+      if (textRect.width <= 0 || textRect.height <= 0) return;
+
+      const offWidth = Math.ceil(textRect.width);
+      const offHeight = Math.ceil(textRect.height);
+
+      const offscreen = document.createElement('canvas');
+      offscreen.width = offWidth;
+      offscreen.height = offHeight;
+      const offCtx = offscreen.getContext('2d');
+      if (!offCtx) return;
+
+      // Extract computed font styling
+      const style = window.getComputedStyle(textEl);
+      offCtx.fillStyle = '#ffffff';
+      offCtx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+      offCtx.textAlign = 'center';
+      offCtx.textBaseline = 'middle';
+
+      // Render text in offscreen center
+      offCtx.fillText('KIAN RANCES CAGADAS', offWidth / 2, offHeight / 2);
+
+      try {
+        const imgData = offCtx.getImageData(0, 0, offWidth, offHeight);
+        const data = imgData.data;
+        const sampled = [];
+
+        const relLeft = textRect.left - heroRect.left;
+        const relTop = textRect.top - heroRect.top;
+
+        // Sample pixels on a 2x2 grid for performance and rich coverage
+        const step = 2;
+        for (let y = 0; y < offHeight; y += step) {
+          // Focus disintegration on upper 55% of letters
+          const normY = y / offHeight;
+          if (normY > 0.58) continue; // Keep lower half solid and intact
+
+          for (let x = 0; x < offWidth; x += step) {
+            const idx = (y * offWidth + x) * 4;
+            const alpha = data[idx + 3];
+            if (alpha > 80) {
+              sampled.push({
+                x: relLeft + x,
+                y: relTop + y,
+                normY,
+              });
+            }
+          }
+        }
+
+        if (sampled.length > 50) {
+          letterPixels = sampled;
+        }
+      } catch (e) {
+        // Fallback if canvas security restricts getImageData
+      }
+    };
 
     const resize = () => {
       const heroSection = canvas.closest('#intro') || document.getElementById('intro') || document.body;
@@ -42,52 +113,64 @@ export function DisintegratingTitle() {
       canvas.height = height * dpr;
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
+
+      sampleTextPixels();
     };
 
     resize();
     window.addEventListener('resize', resize);
 
-    // Spawns dust particles along the upper half of the white letters
-    const spawnParticle = (textRect, heroRect) => {
-      if (particles.length >= MAX_PARTICLES || !textRect || !heroRect) return;
+    if (document.fonts) {
+      document.fonts.ready.then(() => {
+        resize();
+      });
+    }
 
-      const relLeft = textRect.left - heroRect.left;
-      const relTop = textRect.top - heroRect.top;
+    // 2. Spawn a single powdery dust grain directly from a letter pixel
+    const spawnDustGrain = (textRect, heroRect) => {
+      if (particles.length >= MAX_PARTICLES) return;
 
-      // Random position along the text length
-      const startX = relLeft + Math.random() * textRect.width;
-      // Start in the upper 45% of the letters
-      const startY = relTop + Math.random() * (textRect.height * 0.45);
+      let startX = 0;
+      let startY = 0;
 
-      // Black hole singularity center in the hero section
-      const bhX = width / 2;
-      const bhY = height / 2;
+      if (letterPixels.length > 0) {
+        // Pick an actual pixel from the letter strokes
+        const p = letterPixels[Math.floor(Math.random() * letterPixels.length)];
+        startX = p.x + (Math.random() - 0.5) * 2;
+        startY = p.y + (Math.random() - 0.5) * 2;
+      } else if (textRect && heroRect) {
+        // Graceful fallback
+        const relLeft = textRect.left - heroRect.left;
+        const relTop = textRect.top - heroRect.top;
+        startX = relLeft + Math.random() * textRect.width;
+        startY = relTop + Math.random() * (textRect.height * 0.45);
+      } else {
+        return;
+      }
 
-      // Initial trajectory pointing upward towards the black hole
-      const dx = bhX - startX;
-      const dy = bhY - startY; // Negative (upward)
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      const initialSpeed = 45 + Math.random() * 75;
-      const initialVx = (dx / (dist || 1)) * initialSpeed + (Math.random() - 0.5) * 18;
-      const initialVy = (dy / (dist || 1)) * initialSpeed - (25 + Math.random() * 50);
+      // Initial gentle liftoff velocity (starts softly like smoke/ash detaching)
+      const liftVx = (Math.random() - 0.5) * 14;
+      const liftVy = -16 - Math.random() * 24;
 
       particles.push({
         x: startX,
         y: startY,
-        vx: initialVx,
-        vy: initialVy,
-        prevX: startX,
-        prevY: startY,
-        size: 1.2 + Math.random() * 2.2,
-        alpha: 0.85 + Math.random() * 0.15,
+        vx: liftVx,
+        vy: liftVy,
+        // Microscopic powdery dust grain size (0.7px to 1.7px)
+        size: 0.7 + Math.random() * 1.0,
+        // Soft powdery opacity (0.25 to 0.75)
+        alpha: 0.3 + Math.random() * 0.45,
         life: 0,
-        maxLife: 2.4 + Math.random() * 1.6,
+        maxLife: 3.2 + Math.random() * 2.0,
+        phase: Math.random() * Math.PI * 2,
+        swirlFactor: 0.75 + Math.random() * 0.5,
       });
     };
 
     let lastTime = performance.now();
 
+    // 3. 60FPS Silky-Smooth Gravitational Streamline Loop
     const render = (time) => {
       const dt = Math.min((time - lastTime) / 1000, 0.08);
       lastTime = time;
@@ -100,16 +183,16 @@ export function DisintegratingTitle() {
       const heroRect = heroSection ? heroSection.getBoundingClientRect() : { left: 0, top: 0 };
       const textRect = textEl.getBoundingClientRect();
 
-      // Continuously spawn fresh matter particles from the letters
-      for (let i = 0; i < 4; i++) {
-        spawnParticle(textRect, heroRect);
+      // Continuously spawn batches of fine dust grains from letter strokes
+      for (let i = 0; i < 7; i++) {
+        spawnDustGrain(textRect, heroRect);
       }
 
-      // Singularity core coordinates in the exact center of #intro
+      // Singularity core coordinates in the exact center of the black hole
       const bhX = width / 2;
       const bhY = height / 2;
 
-      // Update and draw each dust particle pulling into the black hole center
+      // Update and render each powdery dust grain
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.life += dt;
@@ -119,60 +202,63 @@ export function DisintegratingTitle() {
         const dy = bhY - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        // Particle swallowed by singularity event horizon or expired
-        if (dist <= 26 || p.life >= p.maxLife) {
+        // Particle swallowed into singularity core or expired
+        if (dist <= 22 || p.life >= p.maxLife) {
           particles.splice(i, 1);
           continue;
         }
 
-        p.prevX = p.x;
-        p.prevY = p.y;
+        // --- SILKY-SMOOTH GRAVITATIONAL STREAMLINE PHYSICS ---
+        // Unit direction vector to singularity
+        const ux = dx / dist;
+        const uy = dy / dist;
 
-        // Gravitational acceleration pulling inward to black hole center
-        // Accelerates strongly as it approaches the singularity core
-        const pullFactor = 72000 / Math.max(dist * 0.85, 35);
-        const ux = dx / (dist || 1);
-        const uy = dy / (dist || 1);
+        // Perpendicular tangential swirl vector (clockwise accretion swirl)
+        const sx = -uy;
+        const sy = ux;
 
-        p.vx += ux * pullFactor * dt;
-        p.vy += uy * pullFactor * dt;
+        // Ideal streamline velocity profile:
+        // Starts at a calm ~40px/s near the letters and accelerates smoothly up to ~280px/s near singularity
+        const distClamped = Math.max(0, Math.min(450, dist));
+        const proximity = 1.0 - distClamped / 450; // 0.0 near letters, 1.0 at singularity
 
-        // Relativistic Keplerian swirl into the accretion disk
-        const swirlStrength = 3600 / Math.max(Math.sqrt(dist), 6);
-        p.vx += -uy * swirlStrength * dt;
-        p.vy += ux * swirlStrength * dt;
+        const smoothSpeed = 38 + proximity * 240;
+        const smoothSwirl = proximity * 150 * p.swirlFactor;
 
-        // Inertial damping for silky smooth curvature
-        p.vx *= 0.985;
-        p.vy *= 0.985;
+        // Gentle sinusoidal micro-drift for organic billowing stardust feel
+        const drift = Math.sin(p.y * 0.015 + p.phase + time * 0.0018) * (8 * (1.0 - proximity));
 
-        // Update positions
+        const targetVx = ux * smoothSpeed + sx * smoothSwirl + drift;
+        const targetVy = uy * smoothSpeed + sy * smoothSwirl;
+
+        // Exponential velocity smoothing (steering) - guarantees C^2 curvature with zero jerks
+        const steerRate = 3.6;
+        p.vx += (targetVx - p.vx) * Math.min(1.0, steerRate * dt);
+        p.vy += (targetVy - p.vy) * Math.min(1.0, steerRate * dt);
+
         p.x += p.vx * dt;
         p.y += p.vy * dt;
 
-        // Fading alpha near singularity
+        // Soft fading alpha:
+        // Fade in gently upon liftoff, stay visible throughout flight, fade out when crossing event horizon
         const progress = p.life / p.maxLife;
-        const fadeAlpha = dist < 75 ? dist / 75 : 1.0;
-        const finalAlpha = Math.max(0, Math.min(1, p.alpha * fadeAlpha * (1.0 - progress * 0.25)));
+        const fadeIn = Math.min(1.0, p.life * 4.0);
+        const fadeHorizon = dist < 70 ? dist / 70 : 1.0;
+        const finalAlpha = Math.max(0, Math.min(1, p.alpha * fadeIn * fadeHorizon * (1.0 - progress * 0.2)));
 
-        // Draw particle as a luminous pure white matter streak aligned with velocity
-        ctx.strokeStyle = `rgba(255, 255, 255, ${finalAlpha.toFixed(3)})`;
-        ctx.lineWidth = p.size;
-        ctx.lineCap = 'round';
-        ctx.shadowColor = '#ffffff';
-        ctx.shadowBlur = 4;
-
-        ctx.beginPath();
-        ctx.moveTo(p.prevX, p.prevY);
-        ctx.lineTo(p.x, p.y);
-        ctx.stroke();
-
+        // --- RENDER DUST GRAINS (SOFT CIRCULAR PARTICLES, NOT SPARKS) ---
         ctx.fillStyle = `rgba(255, 255, 255, ${finalAlpha.toFixed(3)})`;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 0.5, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.shadowBlur = 0;
+        // Extra soft glow for a subset of particles to create volumetric stardust haze
+        if (p.size > 1.2) {
+          ctx.fillStyle = `rgba(255, 255, 255, ${(finalAlpha * 0.25).toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       ctx.restore();
@@ -208,7 +294,7 @@ export function DisintegratingTitle() {
             className="disintegrating-name font-['Orbitron'] font-black text-3xl sm:text-5xl md:text-6xl lg:text-7xl tracking-[0.16em] uppercase text-white select-none relative"
           >
             {/* Pure solid white text with upper disintegration mask */}
-            <span className="disintegrating-white-text block text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] drop-shadow-[0_0_20px_rgba(255,255,255,0.45)]">
+            <span className="disintegrating-white-text block text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">
               KIAN RANCES CAGADAS
             </span>
           </h1>

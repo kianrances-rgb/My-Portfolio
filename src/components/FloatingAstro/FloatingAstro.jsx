@@ -1,240 +1,424 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { mascotGreetings } from '../../data/portfolioData';
 import { useCosmicAudio } from '../../hooks/useCosmicAudio';
 
 /**
  * FloatingAstro Component
- * Persistent Zero-G Floating Astronaut Avatar that roams gracefully after Page 1.
- *
+ * Autonomous Zero-G Roaming Astronaut Tour Guide.
+ * 
  * Features:
- * - Appears smoothly only after user scrolls past Page 1 (Singularity).
- * - Floats gracefully across the viewport with microgravity inertia and gentle bobbing.
- * - Draggable: user can drag Astronaut Kian anywhere on their screen.
- * - Overhead holographic speech bubble cycling greetings every 5 seconds.
- * - Interactive: Click or press Enter to trigger 360° somersault flip, thruster burst,
- *   audio chime, and advance the greeting.
- * - Minimizable / Dockable to corner if user prefers.
+ * 1. Autonomous Random Roaming:
+ *    - Roams dynamically across viewport margins in zero gravity using smooth velocity steering.
+ *    - Tilts realistically with movement vectors, bursts thruster ion jets when accelerating.
+ *    - Microgravity sinusoidal bobbing when cruising/lingering.
+ *    - Fully draggable: user can drag Astronaut Kian anywhere; resumes autonomous roaming when released.
+ * 2. Intelligent Portfolio Tour Guide:
+ *    - Dynamically detects the exact sector the user is currently viewing:
+ *      • Sector 00: Singularity (Relativistic Black Hole & Disintegrating Name)
+ *      • Sector 0.5: Orbital Defense (Modern Space Dogfight Interceptor Arcade)
+ *      • Sector 01: Galaxy (Academic Formations & Andromeda Simulation)
+ *      • Sector 02: Supernova (Technical Skills & Neutron Star)
+ *      • Sector 03: Contact (Subspace Transceiver & Direct Channels)
+ *      • Footer (Mission Brief & Sector Coordinates)
+ *    - Holographic speech bubble pops with celestial chime and updates with lively explanations.
+ *    - Interactive: Click or press Enter for a 360° somersault flip, thruster flare, and extra developer insights!
+ *    - Minimizable / dockable to corner if desired.
  */
+
+// Sector Explanations & Contextual Insights
+const SECTOR_GUIDES = {
+  intro: {
+    sector: 'SECTOR 00 // SINGULARITY',
+    icon: '🕳️',
+    messages: [
+      "You're at Sector 00: Singularity! Driven by a real-time relativistic WebGL black hole engine.",
+      "Look below: Kian's name is in pure white, with its upper edge disintegrating into stardust!",
+      "The powdery white dust is physically pulled into the black hole's singularity core.",
+    ],
+  },
+  arcade: {
+    sector: 'SECTOR 0.5 // ORBITAL DEFENSE',
+    icon: '🚀',
+    messages: [
+      "Entering the Orbital Defense Perimeter! Check out this modern 60FPS space dogfight simulator!",
+      "The starfighter is currently in AI Auto-Pilot. Click or tap the game to take manual flight control!",
+      "Collect yellow overdrive power-up orbs to unleash triple spread plasma weapons!",
+    ],
+  },
+  galaxy: {
+    sector: 'SECTOR 01 // GALAXY',
+    icon: '🌌',
+    messages: [
+      "Welcome to Sector 01: Galaxy! Here lies Kian's academic journey and engineering foundation.",
+      "Explore his degrees at ICCT Colleges and DAEHAN ICT Strand in the orbital cards.",
+      "Behind the milestones, an astrophysical 14,000-star Andromeda spiral galaxy is actively rotating!",
+    ],
+  },
+  supernova: {
+    sector: 'SECTOR 02 // SUPERNOVA',
+    icon: '⚡',
+    messages: [
+      "You're inside Sector 02: Supernova! Powered by a spinning relativistic neutron star.",
+      "Here are Kian's technical skills forged across Languages, Frontend, Backend, and Systems.",
+      "Use the interactive filter bar above to filter by your preferred energy cluster!",
+    ],
+  },
+  contact: {
+    sector: 'SECTOR 03 // CONTACT',
+    icon: '📡',
+    messages: [
+      "Arrived at Sector 03: Subspace Contact! Ready to build or collaborate? Transmit a signal!",
+      "Click 'TRANSMIT VIA EMAIL' or use the Gmail console to dispatch directly to Kian.",
+      "You can also explore his GitHub repositories or connect directly on social channels!",
+    ],
+  },
+  footer: {
+    sector: 'SOL-3 // MISSION COMPLETE',
+    icon: '✨',
+    messages: [
+      "Mission Complete! You've traversed all sectors of Kian Rances Cagadas's cosmic portfolio.",
+      "Human-crafted computational excellence in the vast cosmic expanse. Have an interstellar day! 🚀",
+    ],
+  },
+};
+
 export function FloatingAstro() {
-  const [isVisible, setIsVisible] = useState(false);
-  const [greetIndex, setGreetIndex] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
+  const [currentSection, setCurrentSection] = useState('intro');
+  const [msgIndex, setMsgIndex] = useState(0);
   const [isBoosting, setIsBoosting] = useState(false);
   const [isPopping, setIsPopping] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isDocked, setIsDocked] = useState(false);
 
-  // Position state for dragging and zero-g roaming
-  // Defaults to bottom-right of viewport
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [hasMoved, setHasMoved] = useState(false);
+  // Astronaut live coordinates & physics
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [tilt, setTilt] = useState(0);
+  const [isThrusting, setIsThrusting] = useState(false);
 
-  const dragStartRef = useRef({ mouseX: 0, mouseY: 0, posX: 0, posY: 0 });
+  const physicsRef = useRef({
+    x: 0,
+    y: 0,
+    vx: 0,
+    vy: 0,
+    targetX: 0,
+    targetY: 0,
+    roamTimer: 0,
+    pauseTimer: 0,
+    userHasDragged: false,
+    dragStart: { mouseX: 0, mouseY: 0, startX: 0, startY: 0 },
+    lastScrollY: 0,
+  });
+
   const containerRef = useRef(null);
-  const timerRef = useRef(null);
   const { playChime } = useCosmicAudio();
 
-  const greetingsList = [
-    "Hi! I'm Astronaut Kian! 👨‍🚀",
-    "Watch out for Space Invaders above! 👾💥",
-    "To the Space and Beyond! 🚀🌌",
-    "Systems Operational // All Cores Online ⚡",
-    "Exploring the Andromeda Galaxy... 🌌✨",
-    "Welcome to My Cosmic Portfolio! ✨",
-    "Need a developer? Transmit a signal below! 📡",
-  ];
-
-  // 1. Scroll-spy detection: appear after Page 1
+  // 1. Initial Position (Comfortable margin on mount)
   useEffect(() => {
-    const checkScroll = () => {
-      // Page 1 is approx window.innerHeight * 0.45 or scrollY > 350
-      const threshold = Math.min(window.innerHeight * 0.45, 420);
-      const shouldShow = window.scrollY > threshold;
-      setIsVisible(shouldShow);
+    const initPos = () => {
+      const defaultX = Math.max(20, window.innerWidth - 180);
+      const defaultY = Math.max(120, window.innerHeight - 240);
+      physicsRef.current.x = defaultX;
+      physicsRef.current.y = defaultY;
+      physicsRef.current.targetX = defaultX;
+      physicsRef.current.targetY = defaultY;
+      setPos({ x: defaultX, y: defaultY });
     };
 
-    window.addEventListener('scroll', checkScroll, { passive: true });
-    checkScroll();
-
-    return () => window.removeEventListener('scroll', checkScroll);
+    initPos();
+    window.addEventListener('resize', initPos);
+    return () => window.removeEventListener('resize', initPos);
   }, []);
 
-  // 2. Initial position near bottom-right on mount / resize
+  // 2. Portfolio Section Detector
   useEffect(() => {
-    const setInitialPos = () => {
-      if (!hasMoved) {
-        const defaultX = Math.max(20, window.innerWidth - 180);
-        const defaultY = Math.max(120, window.innerHeight - 240);
-        setPosition({ x: defaultX, y: defaultY });
-      }
-    };
+    const detectSection = () => {
+      const sections = [
+        { id: 'footer', el: document.querySelector('footer') || document.getElementById('footer') },
+        { id: 'contact', el: document.getElementById('contact') },
+        { id: 'supernova', el: document.getElementById('supernova') },
+        { id: 'galaxy', el: document.getElementById('galaxy') },
+        { id: 'arcade', el: document.getElementById('arcade') },
+        { id: 'intro', el: document.getElementById('intro') },
+      ];
 
-    setInitialPos();
-    window.addEventListener('resize', setInitialPos);
-    return () => window.removeEventListener('resize', setInitialPos);
-  }, [hasMoved]);
+      const viewMidY = window.innerHeight * 0.42;
 
-  // 3. Periodic greeting cycle every 5 seconds
-  const advanceGreeting = useCallback((interactive = false) => {
-    setIsPopping(true);
-    setTimeout(() => setIsPopping(false), 550);
-    setGreetIndex((prev) => (prev + 1) % greetingsList.length);
-
-    if (interactive) {
-      setIsBoosting(true);
-      if (typeof playChime === 'function') {
-        playChime();
-      } else if (window.cosmicAudio?.playCometChime) {
-        window.cosmicAudio.playCometChime();
-      }
-      setTimeout(() => {
-        setIsBoosting(false);
-      }, 1200);
-    }
-  }, [greetingsList.length, playChime]);
-
-  useEffect(() => {
-    if (!isVisible) return;
-
-    const startTimer = () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      timerRef.current = setInterval(() => {
-        if (!document.hidden && !isDragging) {
-          advanceGreeting(false);
+      for (const sec of sections) {
+        if (sec.el) {
+          const rect = sec.el.getBoundingClientRect();
+          if (rect.top <= viewMidY && rect.bottom >= 100) {
+            if (sec.id !== currentSection) {
+              setCurrentSection(sec.id);
+              setMsgIndex(0);
+              setIsPopping(true);
+              setTimeout(() => setIsPopping(false), 550);
+            }
+            break;
+          }
         }
-      }, 5000);
+      }
     };
 
-    startTimer();
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isVisible, isDragging, advanceGreeting]);
+    window.addEventListener('scroll', detectSection, { passive: true });
+    detectSection();
+    return () => window.removeEventListener('scroll', detectSection);
+  }, [currentSection]);
 
-  // 4. Click / Tap interaction handler
+  // 3. Periodic Message Cycle within the current section
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!document.hidden && !isDragging) {
+        setMsgIndex((prev) => {
+          const guide = SECTOR_GUIDES[currentSection] || SECTOR_GUIDES.intro;
+          return (prev + 1) % guide.messages.length;
+        });
+        setIsPopping(true);
+        setTimeout(() => setIsPopping(false), 500);
+      }
+    }, 7000);
+
+    return () => clearInterval(interval);
+  }, [currentSection, isDragging]);
+
+  // 4. Autonomous Zero-G Random Roaming Engine (60FPS Physics Loop)
+  useEffect(() => {
+    let animId = null;
+    let lastTime = performance.now();
+
+    // Helper: Pick a new pleasant waypoint across the viewport margins
+    const pickNewWaypoint = () => {
+      const p = physicsRef.current;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      // Choose a random quadrant/margin to explore without covering center reading text
+      const zones = [
+        // Top-right
+        { minX: w - 220, maxX: w - 110, minY: 110, maxY: 260 },
+        // Mid-right
+        { minX: w - 210, maxX: w - 100, minY: 280, maxY: Math.max(300, h - 220) },
+        // Bottom-right
+        { minX: Math.max(120, w - 240), maxX: w - 90, minY: Math.max(140, h - 220), maxY: h - 140 },
+        // Bottom-left
+        { minX: 30, maxX: Math.min(220, w - 150), minY: Math.max(140, h - 220), maxY: h - 140 },
+        // Mid-left
+        { minX: 25, maxX: 150, minY: 180, maxY: Math.max(240, h - 240) },
+      ];
+
+      const zone = zones[Math.floor(Math.random() * zones.length)];
+      p.targetX = zone.minX + Math.random() * (zone.maxX - zone.minX);
+      p.targetY = zone.minY + Math.random() * (zone.maxY - zone.minY);
+      p.roamTimer = 6.0 + Math.random() * 5.0; // Stay/travel for 6-11 seconds
+    };
+
+    pickNewWaypoint();
+
+    const updatePhysics = (time) => {
+      const dt = Math.min((time - lastTime) / 1000, 0.08);
+      lastTime = time;
+
+      const p = physicsRef.current;
+
+      if (!isDragging && !isDocked) {
+        p.roamTimer -= dt;
+        if (p.roamTimer <= 0) {
+          pickNewWaypoint();
+        }
+
+        // Vector to target waypoint
+        const dx = p.targetX - p.x;
+        const dy = p.targetY - p.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > 18) {
+          // Accelerate gently towards waypoint
+          const moveSpeed = Math.min(55, dist * 0.7);
+          const targetVx = (dx / dist) * moveSpeed;
+          const targetVy = (dy / dist) * moveSpeed;
+
+          p.vx += (targetVx - p.vx) * Math.min(1.0, 1.6 * dt);
+          p.vy += (targetVy - p.vy) * Math.min(1.0, 1.6 * dt);
+
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+
+          setIsThrusting(Math.hypot(p.vx, p.vy) > 16);
+          // Banking tilt proportional to horizontal velocity
+          setTilt(Math.max(-18, Math.min(18, (p.vx / 45) * 14)));
+        } else {
+          // Zero-G idle floating bob
+          p.vx *= 0.94;
+          p.vy *= 0.94;
+          const idleX = Math.sin(time * 0.0012) * 0.35;
+          const idleY = Math.cos(time * 0.0016) * 0.45;
+          p.x += idleX;
+          p.y += idleY;
+          setIsThrusting(false);
+          setTilt(Math.sin(time * 0.0014) * 4);
+        }
+
+        // Clamp inside screen bounds
+        p.x = Math.max(15, Math.min(window.innerWidth - 120, p.x));
+        p.y = Math.max(80, Math.min(window.innerHeight - 150, p.y));
+
+        setPos({ x: Math.round(p.x), y: Math.round(p.y) });
+      }
+
+      animId = requestAnimationFrame(updatePhysics);
+    };
+
+    animId = requestAnimationFrame(updatePhysics);
+    return () => cancelAnimationFrame(animId);
+  }, [isDragging, isDocked]);
+
+  // 5. Interactive Click & Talk
   const handleAstroClick = (e) => {
     e.stopPropagation();
-    // Only trigger if not a drag action
-    if (!isDragging) {
-      advanceGreeting(true);
-    }
+    if (isDragging) return;
+
+    setIsBoosting(true);
+    if (typeof playChime === 'function') playChime();
+
+    // Advance message immediately
+    const guide = SECTOR_GUIDES[currentSection] || SECTOR_GUIDES.intro;
+    setMsgIndex((prev) => (prev + 1) % guide.messages.length);
+    setIsPopping(true);
+
+    setTimeout(() => {
+      setIsBoosting(false);
+      setIsPopping(false);
+    }, 1100);
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      advanceGreeting(true);
+      handleAstroClick(e);
     }
   };
 
-  // 5. Drag handling (Pointer events for mouse & touch)
+  // 6. User Drag Handling (Pointer Events)
   const handlePointerDown = (e) => {
     if (e.target.closest('.astro-dock-btn')) return;
     setIsDragging(true);
-    setHasMoved(true);
-    dragStartRef.current = {
+    const p = physicsRef.current;
+    p.userHasDragged = true;
+    p.dragStart = {
       mouseX: e.clientX,
       mouseY: e.clientY,
-      posX: position.x,
-      posY: position.y,
+      startX: p.x,
+      startY: p.y,
     };
     e.currentTarget.setPointerCapture?.(e.pointerId);
   };
 
   const handlePointerMove = (e) => {
     if (!isDragging) return;
-    const deltaX = e.clientX - dragStartRef.current.mouseX;
-    const deltaY = e.clientY - dragStartRef.current.mouseY;
+    const p = physicsRef.current;
+    const deltaX = e.clientX - p.dragStart.mouseX;
+    const deltaY = e.clientY - p.dragStart.mouseY;
 
-    // Keep within viewport bounds
-    const maxX = window.innerWidth - 130;
-    const maxY = window.innerHeight - 150;
-    const newX = Math.max(10, Math.min(maxX, dragStartRef.current.posX + deltaX));
-    const newY = Math.max(70, Math.min(maxY, dragStartRef.current.posY + deltaY));
-
-    setPosition({ x: newX, y: newY });
+    p.x = Math.max(15, Math.min(window.innerWidth - 120, p.dragStart.startX + deltaX));
+    p.y = Math.max(80, Math.min(window.innerHeight - 150, p.dragStart.startY + deltaY));
+    p.targetX = p.x;
+    p.targetY = p.y;
+    setPos({ x: p.x, y: p.y });
   };
 
   const handlePointerUp = (e) => {
     if (isDragging) {
       setIsDragging(false);
       e.currentTarget.releasePointerCapture?.(e.pointerId);
+      // Resume wandering in 4 seconds
+      physicsRef.current.roamTimer = 4.0;
     }
   };
 
-  // Dock / Undock toggle
   const toggleDock = (e) => {
     e.stopPropagation();
     setIsDocked((prev) => !prev);
   };
 
+  const activeGuide = SECTOR_GUIDES[currentSection] || SECTOR_GUIDES.intro;
+  const currentMsg = activeGuide.messages[msgIndex % activeGuide.messages.length];
+
   return (
-    <div
+    <aside
       ref={containerRef}
       id="floating-astronaut-companion"
       className={`floating-astronaut-companion fixed z-40 transition-opacity duration-700 select-none ${
         isVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-      } ${isDragging ? 'is-dragging' : ''} ${isBoosting ? 'wander-boost' : ''} ${
-        isDocked ? 'is-docked' : 'zero-g-float'
-      }`}
+      } ${isDragging ? 'is-dragging' : ''} ${isBoosting ? 'wander-boost' : ''}`}
       style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
+        left: `${pos.x}px`,
+        top: `${pos.y}px`,
         touchAction: 'none',
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      role="region"
-      aria-label="Floating Astronaut Companion Kian"
+      aria-label="Astronaut Kian Cosmic Tour Guide"
     >
-      {/* Overhead Holographic Speech Bubble */}
+      {/* Overhead Holographic Tour Guide Speech Bubble */}
       {!isDocked && (
         <div
           id="floating-speech-bubble"
-          className={`floating-speech-bubble ${isPopping ? 'bubble-pop' : ''}`}
+          className={`floating-speech-bubble max-w-[290px] sm:max-w-[340px] flex-col !items-start ${
+            isPopping ? 'bubble-pop' : ''
+          }`}
           aria-live="polite"
         >
-          <span className="bubble-beacon" aria-hidden="true" />
-          <span className="bubble-text">{greetingsList[greetIndex]}</span>
-          {/* Dock / Minimize toggle button */}
-          <button
-            type="button"
-            className="astro-dock-btn"
-            onClick={toggleDock}
-            title="Dock Astronaut to corner"
-            aria-label="Dock Astronaut to corner"
-          >
-            ✕
-          </button>
+          {/* Sector Badge Tag */}
+          <div className="flex items-center justify-between w-full pb-1 border-b border-white/10 text-[10px] tracking-widest text-[#00ffcc] font-['Orbitron'] font-bold">
+            <span className="flex items-center gap-1.5">
+              <span>{activeGuide.icon}</span>
+              <span>{activeGuide.sector}</span>
+            </span>
+            <button
+              type="button"
+              className="astro-dock-btn !m-0 !w-4 !h-4"
+              onClick={toggleDock}
+              title="Dock Astronaut to corner"
+              aria-label="Dock Astronaut to corner"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Contextual Tour Explanation */}
+          <p className="bubble-text text-left font-['Share_Tech_Mono'] text-xs text-white/95 leading-relaxed pt-1 whitespace-normal">
+            {currentMsg}
+          </p>
         </div>
       )}
 
-      {/* Docked pill trigger if docked */}
+      {/* Docked pill trigger if user minimized */}
       {isDocked && (
         <button
           type="button"
           className="docked-astro-pill"
           onClick={toggleDock}
-          title="Resume Zero-G Roaming"
-          aria-label="Resume Zero-G Roaming"
+          title="Resume Zero-G Portfolio Tour"
+          aria-label="Resume Zero-G Tour"
         >
-          <span className="pulse-dot" /> 👨‍🚀 ASTRONAUT KIAN [RESTORE]
+          <span className="pulse-dot" /> 👨‍🚀 ASTRONAUT KIAN [TOUR ACTIVE]
         </button>
       )}
 
-      {/* Interactive Avatar Container */}
+      {/* Interactive Avatar Container with Dynamic Tilt & Banking */}
       <div
-        className="floating-astro-body cursor-grab active:cursor-grabbing"
+        className="floating-astro-body cursor-grab active:cursor-grabbing transition-transform duration-200"
+        style={{ transform: `rotate(${tilt}deg)` }}
         onClick={handleAstroClick}
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="button"
-        aria-label="Astronaut Kian - Click to somersault, Drag to reposition"
-        title="Click to flip & talk • Drag to reposition in zero gravity!"
+        aria-label="Astronaut Kian - Click to talk & flip, drag to move"
+        title="Click to talk & flip • Drag to reposition in zero-g!"
       >
         <svg
-          className="floating-astro-svg w-[110px] h-[110px] sm:w-[130px] sm:h-[130px]"
+          className="floating-astro-svg w-[95px] h-[95px] sm:w-[115px] sm:h-[115px]"
           viewBox="0 0 80 80"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -305,7 +489,7 @@ export function FloatingAstro() {
             </filter>
           </defs>
 
-          {/* Zero-G Tether Lifeline Trail (Cyan dotted trail from user screenshot) */}
+          {/* Zero-G Tether Lifeline Trail */}
           <path
             d="M 18 42 C 6 48, -4 38, -12 45"
             fill="none"
@@ -321,7 +505,7 @@ export function FloatingAstro() {
             cx="21"
             cy="56"
             rx="3.5"
-            ry={isBoosting || isDragging ? '12' : '7'}
+            ry={isBoosting || isDragging || isThrusting ? '13' : '6'}
             fill="url(#flThrusterGrad)"
             className="w-thruster-jet"
           />
@@ -329,7 +513,7 @@ export function FloatingAstro() {
             cx="59"
             cy="56"
             rx="3.5"
-            ry={isBoosting || isDragging ? '12' : '7'}
+            ry={isBoosting || isDragging || isThrusting ? '13' : '6'}
             fill="url(#flThrusterGrad)"
             className="w-thruster-jet"
           />
@@ -521,7 +705,7 @@ export function FloatingAstro() {
           />
         </svg>
       </div>
-    </div>
+    </aside>
   );
 }
 

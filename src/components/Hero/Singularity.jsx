@@ -36,9 +36,7 @@ export function Singularity() {
       </div>
 
       {/* 3. Lower Middle of Page 1: Pure White Disintegrating Title with Upward Gravitational Siphon */}
-      <div className="hero-footer-bar relative z-20 w-full max-w-5xl flex flex-col items-center text-center pointer-events-auto mt-auto">
-        <DisintegratingTitle />
-      </div>
+      <DisintegratingTitle />
     </section>
   );
 }

@@ -1,7 +1,6 @@
 import React from 'react';
 import { contact } from '../../data/portfolioData';
 import { ChannelCard } from './ChannelCard';
-import { WanderingAstro } from './WanderingAstro';
 import { MessageForm } from './MessageForm';
 
 /**
@@ -60,9 +59,8 @@ export function ContactPanel() {
           ))}
         </div>
 
-        {/* Subspace Transmission Console Wrapper with Wandering Astronaut Mascot */}
+        {/* Subspace Transmission Console Wrapper */}
         <div className="transmission-console-wrapper relative">
-          <WanderingAstro />
           <MessageForm />
         </div>
       </div>

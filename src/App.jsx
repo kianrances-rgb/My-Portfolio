@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StarfieldCanvas } from './components/Background';
 import { AstroCursor, SiphonCanvas } from './components/Cursor';
+import { FloatingAstro } from './components/FloatingAstro';
 import { Header } from './components/Navigation';
 import { Singularity } from './components/Hero';
+import { SpaceInvadersBanner } from './components/Arcade';
 import { GalaxyPanel } from './components/Galaxy';
 import { SupernovaPanel } from './components/Supernova';
 import { ContactPanel } from './components/Contact';
@@ -77,6 +79,9 @@ export function App() {
       {/* 4. Interactive 3D Mini Astronaut Cursor */}
       <AstroCursor />
 
+      {/* 4.5. Floating Astronaut Avatar Companion (Roams smoothly after Page 1) */}
+      <FloatingAstro />
+
       {/* 5. Fixed Cosmic Telemetry Navigation Bar */}
       <Header activeSection={activeSection} onNavigate={handleNavigate} />
 
@@ -84,6 +89,9 @@ export function App() {
       <main id="main-content" className="relative z-10 focus:outline-none" tabIndex={-1}>
         {/* Sector 00: Singularity (Hero, Relativistic Black Hole, Telemetry HUD) */}
         <Singularity />
+
+        {/* Space Invaders Retro Arcade Game Banner after 1st Page */}
+        <SpaceInvadersBanner />
 
         {/* Sector 01: Galaxy (Spiral Arm, Andromeda M31, Academic Milestones) */}
         <GalaxyPanel />

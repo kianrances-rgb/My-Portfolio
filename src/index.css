@@ -2236,6 +2236,17 @@
   line-height: 1.15;
 }
 
+.disintegrating-white-text {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-shadow: 0 0 24px rgba(255, 255, 255, 0.55), 0 4px 20px rgba(0, 0, 0, 0.95);
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 48%, rgba(0, 0, 0, 0.8) 72%, rgba(0, 0, 0, 0.2) 100%);
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 48%, rgba(0, 0, 0, 0.8) 72%, rgba(0, 0, 0, 0.2) 100%);
+}
+
 .name-solid-base {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.95) 45%, #ffffff 100%);
   -webkit-background-clip: text;

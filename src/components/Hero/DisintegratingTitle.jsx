@@ -2,21 +2,22 @@ import React, { useEffect, useRef } from 'react';
 
 /**
  * DisintegratingTitle Component
- * Displays "KIAN RANCES CAGADAS" in the lower middle of Page 1.
- * - Solid and readable bottom and mid letter stems with an eroded upper plasma edge.
- * - High-speed upward particle dust simulation pulling matter into the black hole above.
+ * Displays "KIAN RANCES CAGADAS" in pure solid white in the lower middle of Page 1.
+ * - Solid readable lower letter stems.
+ * - Upper half disintegrates into glowing white matter dust.
+ * - Canvas spans the entire #intro section to pull dust particles straight
+ *   UPWARD and INWARD into the exact center of the black hole singularity.
  * - Subtle status tag: "ARCHITECT / JUNIOR WEB & GAME DEVELOPER".
  */
 export function DisintegratingTitle() {
   const canvasRef = useRef(null);
-  const containerRef = useRef(null);
   const textRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const container = containerRef.current;
     const textEl = textRef.current;
-    if (!canvas || !container || !textEl) return;
+    if (!canvas || !textEl) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -26,26 +27,16 @@ export function DisintegratingTitle() {
     let height = 0;
     let dpr = 1;
 
-    // Active particle array for dust pulling upward
+    // Upward matter stream particles
     const particles = [];
-    const MAX_PARTICLES = 220;
-
-    const palette = [
-      '#00ffcc', // Cyber Cyan
-      '#5de6ff', // Electric Ice
-      '#ffaa00', // Plasma Gold
-      '#ffd700', // Bright Accretion Gold
-      '#b833fa', // Lensed Violet
-      '#ff2a85', // Relativistic Magenta
-      '#ffffff', // Pure Star White
-    ];
+    const MAX_PARTICLES = 280;
 
     const resize = () => {
-      const rect = container.getBoundingClientRect();
+      const heroSection = canvas.closest('#intro') || document.getElementById('intro') || document.body;
+      const rect = heroSection.getBoundingClientRect();
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       width = rect.width;
-      // Height extends upwards by 260px toward the black hole
-      height = rect.height + 260;
+      height = rect.height;
 
       canvas.width = width * dpr;
       canvas.height = height * dpr;
@@ -56,107 +47,132 @@ export function DisintegratingTitle() {
     resize();
     window.addEventListener('resize', resize);
 
-    // Helper: spawn particles along text top boundary
-    const spawnParticle = (textBounds) => {
-      if (particles.length >= MAX_PARTICLES || !textBounds) return;
+    // Spawns dust particles along the upper half of the white letters
+    const spawnParticle = (textRect, heroRect) => {
+      if (particles.length >= MAX_PARTICLES || !textRect || !heroRect) return;
 
-      // Random position across text width
-      const relX = Math.random() * textBounds.width;
-      // Start near the top half of the text
-      const relY = textBounds.height * (0.15 + Math.random() * 0.45);
+      const relLeft = textRect.left - heroRect.left;
+      const relTop = textRect.top - heroRect.top;
 
-      const startX = textBounds.left + relX;
-      const startY = height - textBounds.height + relY;
+      // Random position along the text length
+      const startX = relLeft + Math.random() * textRect.width;
+      // Start in the upper 45% of the letters
+      const startY = relTop + Math.random() * (textRect.height * 0.45);
 
-      // Center of the black hole above
-      const targetX = width / 2;
-      const targetY = 10; // Top of canvas near black hole
+      // Black hole singularity center in the hero section
+      const bhX = width / 2;
+      const bhY = height / 2;
 
-      const angleToCenter = Math.atan2(targetY - startY, targetX - startX);
-      const initialSpeed = 25 + Math.random() * 60;
+      // Initial trajectory pointing upward towards the black hole
+      const dx = bhX - startX;
+      const dy = bhY - startY; // Negative (upward)
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      const initialSpeed = 45 + Math.random() * 75;
+      const initialVx = (dx / (dist || 1)) * initialSpeed + (Math.random() - 0.5) * 18;
+      const initialVy = (dy / (dist || 1)) * initialSpeed - (25 + Math.random() * 50);
 
       particles.push({
         x: startX,
         y: startY,
-        vx: Math.cos(angleToCenter) * initialSpeed + (Math.random() - 0.5) * 35,
-        vy: -Math.abs(Math.sin(angleToCenter) * initialSpeed) - (20 + Math.random() * 40),
+        vx: initialVx,
+        vy: initialVy,
+        prevX: startX,
+        prevY: startY,
         size: 1.2 + Math.random() * 2.2,
-        color: palette[Math.floor(Math.random() * palette.length)],
+        alpha: 0.85 + Math.random() * 0.15,
         life: 0,
-        maxLife: 1.4 + Math.random() * 1.8,
-        swirlOffset: Math.random() * Math.PI * 2,
-        swirlSpeed: 2.5 + Math.random() * 4.0,
+        maxLife: 2.4 + Math.random() * 1.6,
       });
     };
 
     let lastTime = performance.now();
 
     const render = (time) => {
-      const dt = Math.min((time - lastTime) / 1000, 0.1);
+      const dt = Math.min((time - lastTime) / 1000, 0.08);
       lastTime = time;
 
       ctx.save();
       ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, width, height);
 
-      // Get text location relative to container
+      const heroSection = canvas.closest('#intro') || document.getElementById('intro');
+      const heroRect = heroSection ? heroSection.getBoundingClientRect() : { left: 0, top: 0 };
       const textRect = textEl.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-      const textBounds = {
-        left: textRect.left - containerRect.left,
-        width: textRect.width,
-        height: textRect.height,
-      };
 
-      // Spawn burst of particles continuously
+      // Continuously spawn fresh matter particles from the letters
       for (let i = 0; i < 4; i++) {
-        spawnParticle(textBounds);
+        spawnParticle(textRect, heroRect);
       }
 
-      const bhCenterX = width / 2;
-      const bhCenterY = 0; // Black hole event horizon center above
+      // Singularity core coordinates in the exact center of #intro
+      const bhX = width / 2;
+      const bhY = height / 2;
 
-      // Update and draw upward-siphoned particles
+      // Update and draw each dust particle pulling into the black hole center
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.life += dt;
 
-        if (p.life >= p.maxLife || p.y <= 0) {
+        // Vector to black hole core
+        const dx = bhX - p.x;
+        const dy = bhY - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        // Particle swallowed by singularity event horizon or expired
+        if (dist <= 26 || p.life >= p.maxLife) {
           particles.splice(i, 1);
           continue;
         }
 
-        const progress = p.life / p.maxLife;
+        p.prevX = p.x;
+        p.prevY = p.y;
 
-        // Gravitational pull toward black hole singularity:
-        // Acceleration increases as particle gets closer to top center
-        const dx = bhCenterX - p.x;
-        const dy = bhCenterY - p.y;
-        const distToSingularity = Math.sqrt(dx * dx + dy * dy);
+        // Gravitational acceleration pulling inward to black hole center
+        // Accelerates strongly as it approaches the singularity core
+        const pullFactor = 72000 / Math.max(dist * 0.85, 35);
+        const ux = dx / (dist || 1);
+        const uy = dy / (dist || 1);
 
-        const gravitationalPull = 140 / Math.max(distToSingularity * 0.015, 0.6);
-        p.vx += (dx / (distToSingularity || 1)) * gravitationalPull * dt;
-        p.vy -= (120 + progress * 160) * dt; // Strong upward suction
+        p.vx += ux * pullFactor * dt;
+        p.vy += uy * pullFactor * dt;
 
-        // Relativistic swirl jitter
-        const swirl = Math.sin(time * 0.003 * p.swirlSpeed + p.swirlOffset) * (18 * (1 - progress));
-        p.x += (p.vx + swirl) * dt;
+        // Relativistic Keplerian swirl into the accretion disk
+        const swirlStrength = 3600 / Math.max(Math.sqrt(dist), 6);
+        p.vx += -uy * swirlStrength * dt;
+        p.vy += ux * swirlStrength * dt;
+
+        // Inertial damping for silky smooth curvature
+        p.vx *= 0.985;
+        p.vy *= 0.985;
+
+        // Update positions
+        p.x += p.vx * dt;
         p.y += p.vy * dt;
 
-        // Fading alpha as particle dissolves into event horizon
-        const alpha = Math.sin(progress * Math.PI) * (1.0 - progress * 0.4);
+        // Fading alpha near singularity
+        const progress = p.life / p.maxLife;
+        const fadeAlpha = dist < 75 ? dist / 75 : 1.0;
+        const finalAlpha = Math.max(0, Math.min(1, p.alpha * fadeAlpha * (1.0 - progress * 0.25)));
 
-        ctx.fillStyle = p.color;
-        ctx.shadowColor = p.color;
-        ctx.shadowBlur = 6;
-        ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+        // Draw particle as a luminous pure white matter streak aligned with velocity
+        ctx.strokeStyle = `rgba(255, 255, 255, ${finalAlpha.toFixed(3)})`;
+        ctx.lineWidth = p.size;
+        ctx.lineCap = 'round';
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 4;
 
-        // Draw particle with subtle motion stretch
-        const stretch = Math.min(6, Math.abs(p.vy) * 0.035);
-        ctx.fillRect(p.x - p.size / 2, p.y - stretch / 2, p.size, p.size + stretch);
+        ctx.beginPath();
+        ctx.moveTo(p.prevX, p.prevY);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+
+        ctx.fillStyle = `rgba(255, 255, 255, ${finalAlpha.toFixed(3)})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 0.5, 0, Math.PI * 2);
+        ctx.fill();
 
         ctx.shadowBlur = 0;
-        ctx.globalAlpha = 1.0;
       }
 
       ctx.restore();
@@ -172,54 +188,41 @@ export function DisintegratingTitle() {
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      className="disintegrating-title-wrapper relative w-full flex flex-col items-center justify-center my-3 pointer-events-auto"
-      aria-label="Kian Rances Cagadas - Lead Architect / Junior Web & Game Developer"
-    >
-      {/* Upward Matter Siphon Canvas (Pulls particle dust straight up into the black hole) */}
+    <>
+      {/* Full-viewport matter siphon canvas connecting text directly to black hole center */}
       <canvas
         ref={canvasRef}
-        className="absolute bottom-0 pointer-events-none z-10 overflow-visible"
+        className="singularity-dust-canvas absolute inset-0 w-full h-full pointer-events-none z-10"
         aria-hidden="true"
       />
 
-      {/* Main Typography Container */}
-      <div className="relative z-20 flex flex-col items-center text-center px-4 max-w-4xl">
-        {/* Disintegrating Main Name */}
-        <h1
-          ref={textRef}
-          className="disintegrating-name font-['Orbitron'] font-black text-2xl sm:text-4xl md:text-5xl lg:text-6xl tracking-[0.16em] uppercase select-none relative"
-        >
-          {/* Layer 1: Solid base providing crisp 100% legibility on lower half */}
-          <span className="name-solid-base block text-transparent bg-clip-text bg-gradient-to-t from-white via-[#f0f6ff] to-[#8eb8f8] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
-            KIAN RANCES CAGADAS
-          </span>
-
-          {/* Layer 2: Dissolving upper plasma mask with shimmering ionization edge */}
-          <span
-            className="name-disintegrating-overlay absolute inset-0 block text-transparent bg-clip-text select-none pointer-events-none"
-            aria-hidden="true"
+      {/* Main Pure White Disintegrating Title Container */}
+      <div
+        ref={containerRef}
+        className="disintegrating-title-container relative z-20 w-full max-w-5xl flex flex-col items-center justify-center text-center select-none pb-6 pointer-events-auto"
+        aria-label="Kian Rances Cagadas - Architect / Junior Web & Game Developer"
+      >
+        <div className="relative flex flex-col items-center max-w-4xl px-4">
+          <h1
+            ref={textRef}
+            className="disintegrating-name font-['Orbitron'] font-black text-3xl sm:text-5xl md:text-6xl lg:text-7xl tracking-[0.16em] uppercase text-white select-none relative"
           >
-            KIAN RANCES CAGADAS
-          </span>
+            {/* Pure solid white text with upper disintegration mask */}
+            <span className="disintegrating-white-text block text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] drop-shadow-[0_0_20px_rgba(255,255,255,0.45)]">
+              KIAN RANCES CAGADAS
+            </span>
+          </h1>
 
-          {/* Layer 3: Neon plasma fringe line right along disintegration threshold */}
-          <span className="plasma-disintegration-rim" aria-hidden="true" />
-        </h1>
-
-        {/* Subtle Status Tag: ARCHITECT / JUNIOR WEB & GAME DEVELOPER */}
-        <div className="status-tag-pill mt-3 sm:mt-3.5 inline-flex items-center gap-2 px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#060a1c]/90 border border-cyan-500/35 backdrop-blur-md shadow-[0_0_18px_rgba(0,255,204,0.2)]">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#00ffcc]" />
-          <span className="font-['Share_Tech_Mono',monospace] text-[11px] sm:text-xs font-bold tracking-[0.2em] text-cyan-300 uppercase">
-            ARCHITECT / JUNIOR WEB &amp; GAME DEVELOPER
-          </span>
-          <span className="text-[10px] font-mono text-slate-500 pl-1 border-l border-cyan-500/30">
-            SOL-3
-          </span>
+          {/* Subtle Status Tag */}
+          <div className="status-tag-pill mt-3 sm:mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#050814]/90 border border-white/20 backdrop-blur-md shadow-[0_0_20px_rgba(255,255,255,0.12)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse shadow-[0_0_8px_#ffffff]" />
+            <span className="font-['Share_Tech_Mono',monospace] text-xs sm:text-sm font-semibold tracking-[0.22em] text-white/90 uppercase">
+              ARCHITECT / JUNIOR WEB &amp; GAME DEVELOPER
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

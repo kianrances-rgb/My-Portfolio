@@ -11,3 +11,8 @@ Thumbs.db
 # Editor & OS files
 .vscode/
 .idea/
+
+# Dependencies & Build output
+node_modules/
+dist/
+.vite/

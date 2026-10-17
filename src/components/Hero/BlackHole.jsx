@@ -38,7 +38,7 @@ const fsSource = `
       return mat2(c, -s, s, c);
   }
 
-  // Hash function
+  // Pseudo-random noise
   float hash(vec2 p) {
       p = fract(p * vec2(123.34, 456.21));
       p += dot(p, p + 45.32);
@@ -51,9 +51,9 @@ const fsSource = `
       float a = 0.5;
       vec2 shift = vec2(100.0);
       mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
-      for (int i = 0; i < 5; ++i) {
-          v += a * (sin(p.x * 2.8) * cos(p.y * 2.8));
-          p = rot * p * 2.05 + shift;
+      for (int i = 0; i < 4; ++i) {
+          v += a * (sin(p.x * 3.0) * cos(p.y * 3.0));
+          p = rot * p * 2.0 + shift;
           a *= 0.5;
       }
       return v;
@@ -63,116 +63,106 @@ const fsSource = `
       // Aspect ratio correction
       vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
       
-      // Interactive mouse tilt reaction
-      vec2 mouseOffset = (u_mouse - 0.5) * 0.42;
-      uv -= mouseOffset * 0.28;
+      // Mouse tilt reaction
+      vec2 mouseOffset = (u_mouse - 0.5) * 0.35;
+      uv -= mouseOffset * 0.25;
 
       float r = length(uv);
       float angle = atan(uv.y, uv.x);
 
       // Schwarzschild Event Horizon radius & Photon sphere radius
-      float r_s = 0.185;           // Event horizon shadow radius
-      float r_photon = r_s * 1.48; // Photon sphere border
+      float r_s = 0.18;            // Event horizon shadow radius
+      float r_photon = r_s * 1.5;   // Photon sphere border
 
       // Gravitational Lensing Distortion: Light bends sharply toward singularity
-      float deflection = (r_s * r_s * 0.92) / max(r, 0.001);
+      // Deflection angle alpha ~ 4GM / (c^2 * r)
+      float deflection = (r_s * r_s * 0.85) / max(r, 0.001);
       vec2 lensedUV = uv;
       if (r > r_s) {
-          lensedUV -= normalize(uv) * deflection * 0.52;
+          lensedUV -= normalize(uv) * deflection * 0.5;
       }
 
-      // Tilted Accretion Disk Projection (~70 deg inclination)
+      // Tilted Accretion Disk Projection
+      // Simulates an accretion disk viewed at ~70 deg inclination
       vec2 diskCoord = lensedUV;
-      diskCoord.y /= 0.38; // Foreshorten vertical axis for dramatic 3D tilt
+      diskCoord.y /= 0.42; // Foreshorten vertical axis for 3D tilt
 
       // Gravitational Lensing creates a secondary upper and lower halo
-      // by bending the back of the disk OVER and UNDER the event horizon
-      float haloY = abs(lensedUV.y) - (r_s * 1.08);
-      vec2 haloCoord = vec2(lensedUV.x, haloY / 0.28);
+      // by bending the back of the disk OVER and UNDER the event horizon!
+      float haloY = abs(lensedUV.y) - (r_s * 1.1);
+      vec2 haloCoord = vec2(lensedUV.x, haloY / 0.3);
 
       float diskR = length(diskCoord);
       float haloR = length(haloCoord);
 
       // Swirling angular dynamics with Keplerian velocity profile (v ~ 1/sqrt(r))
-      float time = u_time * 0.9;
-      float swirlAngle = angle + (time * 0.85) / max(r * 2.2, 0.18);
-      float plasmaNoise = fbm(vec2(swirlAngle * 4.5, r * 15.0 - time * 1.4));
+      float time = u_time * 0.8;
+      float swirlAngle = angle + (time * 0.75) / max(r * 2.0, 0.2);
+      float plasmaNoise = fbm(vec2(swirlAngle * 4.0, r * 14.0 - time * 1.2));
 
-      // 1. Plasma glow intensity in tilted accretion disk
+      // Plasma glow intensity in accretion disk
       float diskGlow = 0.0;
-      if (diskR > r_s * 1.02 && diskR < r_s * 4.5) {
-          float diskMask = smoothstep(r_s * 1.02, r_s * 1.38, diskR) * (1.0 - smoothstep(r_s * 2.3, r_s * 4.5, diskR));
-          diskGlow += diskMask * (0.88 + 0.45 * plasmaNoise);
+      if (diskR > r_s * 1.05 && diskR < r_s * 4.2) {
+          float diskMask = smoothstep(r_s * 1.05, r_s * 1.4, diskR) * (1.0 - smoothstep(r_s * 2.2, r_s * 4.2, diskR));
+          diskGlow += diskMask * (0.8 + 0.4 * plasmaNoise);
       }
 
-      // 2. Gravitationally bent upper and lower halo
-      if (haloR > r_s * 0.92 && haloR < r_s * 3.5) {
-          float haloMask = smoothstep(r_s * 0.92, r_s * 1.28, haloR) * (1.0 - smoothstep(r_s * 1.85, r_s * 3.5, haloR));
-          diskGlow += haloMask * 0.72 * (0.8 + 0.35 * sin(swirlAngle * 5.0 + time));
+      // Gravitationally bent upper and lower halo
+      if (haloR > r_s * 0.95 && haloR < r_s * 3.2) {
+          float haloMask = smoothstep(r_s * 0.95, r_s * 1.3, haloR) * (1.0 - smoothstep(r_s * 1.8, r_s * 3.2, haloR));
+          diskGlow += haloMask * 0.65 * (0.8 + 0.3 * sin(swirlAngle * 5.0 + time));
       }
 
-      // 3. Relativistic Doppler Beaming Factor (Approaching limb boosted & brightened)
-      float dopplerFactor = clamp(1.0 - (uv.x / max(r, 0.1)) * 0.52, 0.3, 2.2);
+      // Relativistic Doppler Beaming Factor:
+      // Material moving toward observer (left side, uv.x < 0) is boosted significantly brighter & blueshifted!
+      // Material moving away (right side, uv.x > 0) is redshifted and dimmer.
+      float dopplerFactor = clamp(1.0 - (uv.x / max(r, 0.1)) * 0.55, 0.25, 2.2);
       diskGlow *= dopplerFactor;
 
-      // 4. Einstein Photon Ring: Intense luminous golden circle
-      float photonRing = exp(-pow((r - r_photon) * 88.0, 2.0)) * 2.6;
+      // Einstein Photon Ring: razor sharp intense luminous circle
+      float photonRing = exp(-pow((r - r_photon) * 85.0, 2.0)) * 2.2;
 
-      // 5. Inner Accretion Edge flare
-      float innerEdge = exp(-pow((r - r_s * 1.06) * 48.0, 2.0)) * 2.1;
+      // Inner Accretion Edge flare
+      float innerEdge = exp(-pow((r - r_s * 1.08) * 45.0, 2.0)) * 1.8;
 
-      // 6. Galactic Black Hole Signature Color Palette:
-      // Innermost: Incandescent Pure White & Radiant Golden Yellow
-      // Mid Disk: Fiery Scarlet Red & Plasma Orange
-      // Outer Halo: Deep Royal Purple & Electric Violet
-      vec3 colWhite      = vec3(1.0, 0.98, 0.92);
-      vec3 colGold       = vec3(1.0, 0.88, 0.18); // #ffe02e
-      vec3 colOrange     = vec3(1.0, 0.42, 0.08); // #ff6b14
-      vec3 colScarlet    = vec3(1.0, 0.12, 0.28); // #ff1f47
-      vec3 colNeonPurple = vec3(0.72, 0.20, 0.98); // #b833fa
-      vec3 colDeepViolet = vec3(0.36, 0.05, 0.68); // #5c0dae
-      vec3 colVoid       = vec3(0.012, 0.012, 0.032);
+      // Gravitational Spacetime grid warping in the background
+      vec2 gridUV = lensedUV * 18.0;
+      float grid = (1.0 - smoothstep(0.0, 0.08, abs(sin(gridUV.x * PI)))) * 
+                   (1.0 - smoothstep(0.0, 0.08, abs(sin(gridUV.y * PI)))) * 0.08;
+
+      // Color Palette Synthesis:
+      // Accretion Core: Blazing white & cyan (high energy)
+      // Mid Disk: Luminous gold & plasma orange
+      // Outer Disk: Deep relativistic dark red & violet
+      vec3 colWhite = vec3(1.0, 1.0, 1.0);
+      vec3 colCyan  = vec3(0.35, 0.85, 1.0);
+      vec3 colGold  = vec3(1.0, 0.72, 0.22);
+      vec3 colRed   = vec3(0.95, 0.25, 0.12);
+      vec3 colVoid  = vec3(0.012, 0.015, 0.035);
 
       vec3 color = colVoid;
+      color += grid * vec3(0.25, 0.45, 0.85);
 
-      // Subtle Galactic contour wave lines undulating in background
-      float waveDist = abs(sin((r * 16.0 - time * 0.7) * PI));
-      float waveLines = smoothstep(0.93, 1.0, 1.0 - waveDist) * 0.05;
-      color += waveLines * colNeonPurple;
+      // Blend Plasma Accretion Spectrum
+      vec3 plasmaColor = mix(colRed, colGold, clamp(diskGlow * 1.2, 0.0, 1.0));
+      plasmaColor = mix(plasmaColor, colCyan, clamp((diskGlow - 0.7) * 2.0, 0.0, 1.0));
+      color += plasmaColor * diskGlow * 1.4;
 
-      // Multi-spectrum color gradient:
-      // Outer: Deep Violet -> Neon Purple -> Scarlet Red -> Orange -> Gold
-      float tGlow = clamp(diskGlow * 1.15, 0.0, 1.0);
-      vec3 plasmaCol = mix(colDeepViolet, colNeonPurple, smoothstep(0.0, 0.35, tGlow));
-      plasmaCol = mix(plasmaCol, colScarlet, smoothstep(0.35, 0.65, tGlow));
-      plasmaCol = mix(plasmaCol, colOrange, smoothstep(0.65, 0.85, tGlow));
-      plasmaCol = mix(plasmaCol, colGold, smoothstep(0.85, 1.0, tGlow));
+      // Add Photon Sphere & Inner Edge Luminance
+      color += (colCyan * 0.6 + colWhite * 0.4) * photonRing;
+      color += (colGold * 0.7 + colWhite * 0.3) * innerEdge;
 
-      color += plasmaCol * diskGlow * 1.6;
-
-      // Add High-Energy Golden-White Photon Ring & Inner Edge Flare
-      color += (colGold * 0.75 + colWhite * 0.5) * photonRing;
-      color += (colOrange * 0.6 + colGold * 0.4) * innerEdge;
-
-      // 7. Central Black Hole Event Horizon Singularity (pure black shadow)
+      // Central Black Hole Event Horizon Singularity:
+      // Absolute darkness inside r <= r_s
       float shadowMask = smoothstep(r_s - 0.008, r_s + 0.004, r);
       color *= shadowMask;
 
-      // 8. Relativistic Corona around shadow border
-      float horizonCorona = exp(-pow((r - r_s) * 30.0, 2.0)) * 1.1;
-      color += colOrange * horizonCorona * shadowMask;
+      // Relativistic Gravitational Glow around shadow border
+      float horizonCorona = exp(-pow((r - r_s) * 28.0, 2.0)) * 0.9;
+      color += vec3(1.0, 0.65, 0.3) * horizonCorona * shadowMask;
 
-      // 9. Floating stellar sparks & relativistic embers around the black hole
-      float emberHash = hash(floor(uv * 42.0));
-      if (emberHash > 0.982 && r > r_s * 1.2 && r < r_s * 4.6) {
-          float emberDist = length(fract(uv * 42.0) - 0.5);
-          float emberGlow = smoothstep(0.3, 0.0, emberDist);
-          vec3 emberCol = mix(colGold, colNeonPurple, sin(emberHash * 50.0 + time) * 0.5 + 0.5);
-          color += emberCol * emberGlow * 1.8;
-      }
-
-      // Smooth outer vignette edge
-      float vig = 1.0 - smoothstep(0.7, 1.35, length(uv));
+      // Vignette edge
+      float vig = 1.0 - smoothstep(0.7, 1.4, length(uv));
       color *= vig;
 
       gl_FragColor = vec4(color, 1.0);
@@ -384,10 +374,10 @@ export function BlackHole() {
       // 2. Gravitational Lensing Upper Arch
       const archWave = Math.sin(t * 1.8) * 4;
       const upperArchGrad = ctx.createLinearGradient(-r_s * 2.8, 0, r_s * 2.8, 0);
-      upperArchGrad.addColorStop(0.0, 'rgba(168, 85, 247, 0.9)'); // Electric violet
-      upperArchGrad.addColorStop(0.35, 'rgba(255, 31, 71, 0.92)'); // Scarlet flame
-      upperArchGrad.addColorStop(0.7, 'rgba(255, 224, 46, 0.95)');  // Radiant gold
-      upperArchGrad.addColorStop(1.0, 'rgba(92, 13, 174, 0.25)');  // Deep violet receding
+      upperArchGrad.addColorStop(0.0, 'rgba(93, 230, 255, 0.85)'); // Blueshifted approaching limb
+      upperArchGrad.addColorStop(0.35, 'rgba(255, 230, 150, 0.9)');
+      upperArchGrad.addColorStop(0.7, 'rgba(255, 120, 30, 0.6)');
+      upperArchGrad.addColorStop(1.0, 'rgba(180, 40, 20, 0.2)'); // Redshifted receding limb
 
       ctx.lineWidth = r_s * 0.38;
       ctx.strokeStyle = upperArchGrad;
@@ -406,10 +396,10 @@ export function BlackHole() {
         const ringAlpha = (1.0 - i / numRings) * (0.55 + 0.25 * Math.sin(t * 2.5 + i));
 
         const ringGrad = ctx.createLinearGradient(-ringR * 2.5, 0, ringR * 2.5, 0);
-        ringGrad.addColorStop(0.0, `rgba(168, 85, 247, ${ringAlpha * 0.95})`);
-        ringGrad.addColorStop(0.35, `rgba(255, 31, 71, ${ringAlpha * 0.9})`);
-        ringGrad.addColorStop(0.7, `rgba(255, 224, 46, ${ringAlpha * 0.95})`);
-        ringGrad.addColorStop(1.0, `rgba(54, 7, 104, ${ringAlpha * 0.25})`);
+        ringGrad.addColorStop(0.0, `rgba(93, 230, 255, ${ringAlpha * 0.95})`);
+        ringGrad.addColorStop(0.3, `rgba(255, 240, 160, ${ringAlpha * 0.9})`);
+        ringGrad.addColorStop(0.65, `rgba(255, 130, 30, ${ringAlpha * 0.55})`);
+        ringGrad.addColorStop(1.0, `rgba(180, 40, 20, ${ringAlpha * 0.2})`);
 
         ctx.lineWidth = r_s * 0.22;
         ctx.strokeStyle = ringGrad;
@@ -427,9 +417,9 @@ export function BlackHole() {
         const fSize = 2.5 + Math.sin(t * 4 + j) * 1.5;
 
         const isApproaching = fx < 0;
-        ctx.fillStyle = isApproaching ? 'rgba(255, 240, 160, 0.95)' : 'rgba(168, 85, 247, 0.6)';
-        ctx.shadowColor = isApproaching ? '#ffe02e' : '#b833fa';
-        ctx.shadowBlur = isApproaching ? 12 : 6;
+        ctx.fillStyle = isApproaching ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 120, 30, 0.5)';
+        ctx.shadowColor = isApproaching ? '#5de6ff' : '#ff5522';
+        ctx.shadowBlur = isApproaching ? 12 : 4;
         ctx.beginPath();
         ctx.arc(fx, fy, fSize, 0, Math.PI * 2);
         ctx.fill();
@@ -439,10 +429,10 @@ export function BlackHole() {
 
       // 4. Gravitational Lensing Lower Arch
       const lowerArchGrad = ctx.createLinearGradient(-r_s * 2.5, 0, r_s * 2.5, 0);
-      lowerArchGrad.addColorStop(0.0, 'rgba(168, 85, 247, 0.8)');
-      lowerArchGrad.addColorStop(0.4, 'rgba(255, 31, 71, 0.8)');
-      lowerArchGrad.addColorStop(0.8, 'rgba(255, 224, 46, 0.5)');
-      lowerArchGrad.addColorStop(1.0, 'rgba(92, 13, 174, 0.2)');
+      lowerArchGrad.addColorStop(0.0, 'rgba(93, 230, 255, 0.7)');
+      lowerArchGrad.addColorStop(0.4, 'rgba(255, 180, 50, 0.75)');
+      lowerArchGrad.addColorStop(0.8, 'rgba(255, 80, 20, 0.4)');
+      lowerArchGrad.addColorStop(1.0, 'rgba(120, 20, 10, 0.15)');
 
       ctx.lineWidth = r_s * 0.24;
       ctx.strokeStyle = lowerArchGrad;
@@ -452,8 +442,8 @@ export function BlackHole() {
 
       // 5. Relativistic Einstein Photon Ring (r ~ 1.5 * r_s)
       const photonPulse = 1.0 + Math.sin(t * 3.2) * 0.08;
-      ctx.strokeStyle = 'rgba(255, 245, 180, 0.98)';
-      ctx.shadowColor = '#ffe02e';
+      ctx.strokeStyle = 'rgba(255, 245, 210, 0.95)';
+      ctx.shadowColor = '#ffe082';
       ctx.shadowBlur = 18;
       ctx.lineWidth = 3.5;
       ctx.beginPath();
@@ -461,9 +451,9 @@ export function BlackHole() {
       ctx.stroke();
 
       // Inner Accretion Edge Flare (ISCO)
-      ctx.strokeStyle = 'rgba(255, 224, 46, 0.85)';
-      ctx.shadowColor = '#ff6b14';
-      ctx.shadowBlur = 14;
+      ctx.strokeStyle = 'rgba(93, 230, 255, 0.75)';
+      ctx.shadowColor = '#5de6ff';
+      ctx.shadowBlur = 12;
       ctx.lineWidth = 2.0;
       ctx.beginPath();
       ctx.arc(0, 0, r_s * 1.15, 0, Math.PI * 2);

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BlackHole } from './BlackHole';
 import { TelemetryHud } from './TelemetryHud';
+import { DisintegratingTitle } from './DisintegratingTitle';
 import { personal } from '../../data/portfolioData';
 
 /**
@@ -127,7 +128,10 @@ export function Singularity({ shearRatio, distanceText, statusText }) {
       </div>
 
       {/* 3. Lower Controls & Telemetry: Floats below the Black Hole */}
-      <div className="hero-footer-bar relative z-10 w-full max-w-4xl flex flex-col items-center gap-4 text-center pointer-events-auto mt-auto">
+      <div className="hero-footer-bar relative z-10 w-full max-w-4xl flex flex-col items-center gap-3 text-center pointer-events-auto mt-auto">
+        {/* Disintegrating Name Title with Upward Gravitational Dust Siphon */}
+        <DisintegratingTitle />
+
         {/* Real-time Gravitational Telemetry HUD */}
         <TelemetryHud
           shearRatio={shearRatio}

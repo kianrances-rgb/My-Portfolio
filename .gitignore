@@ -1,0 +1,13 @@
+# Generator scripts and non-portfolio assignments
+generate_*.py
+update_*.py
+*counter*
+*breadboard*
+test.html
+*.log
+.DS_Store
+Thumbs.db
+
+# Editor & OS files
+.vscode/
+.idea/

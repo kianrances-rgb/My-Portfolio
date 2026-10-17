@@ -2,27 +2,37 @@ import React, { useEffect, useRef } from 'react';
 
 /**
  * DisintegratingTitle Component
- * Renders "KIAN RANCES CAGADAS" in pure solid white in the lower middle of Page 1.
+ * Renders "KIAN RANCES CAGADAS" in the lower middle of Page 1 (#intro).
  * 
- * Features:
- * - Spans the entire #intro hero viewport via an absolute canvas overlay (z-10).
- * - Samples exact pixel stroke coordinates of every letter in "KIAN RANCES CAGADAS".
- * - Visible letter crumbling: micro-dust grains actively detach from the upper letter strokes.
- * - Powdery stardust particles (soft glowing circular grains, not sparks or lines).
- * - Liquid-smooth gravitational streamline flow: continuous exponential velocity steering
- *   into the black hole center with organic accretion swirl.
- * - 100% readable, solid white lower letter stems with an eroding upper particulate edge.
- * - Subtle status tag: "ARCHITECT / JUNIOR WEB & GAME DEVELOPER".
+ * Key Features:
+ * 1. Letter-level disintegration:
+ *    - Lower 50% is solid pure white (#ffffff), crisp and 100% readable.
+ *    - Upper 50% is physically dissolving with an eroding crumbling stardust texture.
+ * 2. Exact stroke-level particle spawning:
+ *    - Extracts true non-empty glyph stroke coordinates for each character on screen.
+ *    - Dust particles spawn DIRECTLY on the letter strokes with full visibility (alpha ~ 0.95),
+ *      so the user visibly sees white stardust crumbs peeling off from each letter itself.
+ * 3. Soft powdery stardust (NOT sparks or laser streaks):
+ *    - Rendered as soft circular stardust grains with feathered edges and volumetric glow.
+ * 4. Silky-smooth gravitational streamline flow:
+ *    - Accelerates and curves smoothly from the letters upward into the exact physical center
+ *      of the black hole singularity with relativistic accretion swirl and zero velocity jerks.
+ * 5. Subtle sci-fi status tag: "ARCHITECT / JUNIOR WEB & GAME DEVELOPER".
  */
 export function DisintegratingTitle() {
   const canvasRef = useRef(null);
-  const textRef = useRef(null);
   const containerRef = useRef(null);
+
+  const WORDS = [
+    { text: 'KIAN', key: 'w1' },
+    { text: 'RANCES', key: 'w2' },
+    { text: 'CAGADAS', key: 'w3' },
+  ];
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const textEl = textRef.current;
-    if (!canvas || !textEl) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -32,82 +42,79 @@ export function DisintegratingTitle() {
     let height = 0;
     let dpr = 1;
 
-    // Sampled letter stroke coordinates
-    let letterPixels = [];
-
-    // Dense stardust stream particles
+    // Dust particle collection
     const particles = [];
-    const MAX_PARTICLES = 550;
+    const MAX_PARTICLES = 680;
 
-    // 1. Letter Stroke Pixel Sampler
-    // Identifies exact (x, y) coordinates of every letter in "KIAN RANCES CAGADAS"
-    const sampleLetterPixels = () => {
-      const heroSection = canvas.closest('#intro') || document.getElementById('intro');
-      if (!heroSection || !textEl) return;
+    // Cache of glyph stroke sample points for every letter on screen
+    let cachedLetterStrokes = [];
 
-      const heroRect = heroSection.getBoundingClientRect();
-      const textRect = textEl.getBoundingClientRect();
+    // Helper: sample exact non-transparent pixel coordinates from letter strokes
+    const sampleLetterStrokes = () => {
+      const letterNodes = container.querySelectorAll('.dust-letter-wrap');
+      if (!letterNodes || letterNodes.length === 0) return;
 
-      if (textRect.width <= 0 || textRect.height <= 0) return;
+      const heroSection = canvas.closest('#intro') || document.getElementById('intro') || document.body;
+      const canvasRect = heroSection.getBoundingClientRect();
 
-      const offWidth = Math.ceil(textRect.width);
-      const offHeight = Math.ceil(textRect.height);
+      const newCache = [];
 
-      const offscreen = document.createElement('canvas');
-      offscreen.width = offWidth;
-      offscreen.height = offHeight;
-      const offCtx = offscreen.getContext('2d');
-      if (!offCtx) return;
+      letterNodes.forEach((node) => {
+        const charBase = node.querySelector('.dust-letter-base');
+        const char = charBase ? charBase.textContent.trim() : '';
+        if (!char) return;
 
-      const style = window.getComputedStyle(textEl);
-      offCtx.fillStyle = '#ffffff';
-      offCtx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
-      offCtx.textAlign = 'center';
-      offCtx.textBaseline = 'middle';
+        const rect = node.getBoundingClientRect();
+        const charW = Math.max(12, Math.floor(rect.width));
+        const charH = Math.max(16, Math.floor(rect.height));
 
-      offCtx.fillText('KIAN RANCES CAGADAS', offWidth / 2, offHeight / 2);
+        // Offscreen sampling canvas
+        const offCanvas = document.createElement('canvas');
+        offCanvas.width = charW;
+        offCanvas.height = charH;
+        const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
+        if (!offCtx) return;
 
-      const relLeft = textRect.left - heroRect.left;
-      const relTop = textRect.top - heroRect.top;
+        const computed = window.getComputedStyle(charBase);
+        const font = computed.font || `${computed.fontWeight} ${computed.fontSize} ${computed.fontFamily}`;
 
-      try {
-        const imgData = offCtx.getImageData(0, 0, offWidth, offHeight);
-        const data = imgData.data;
-        const sampled = [];
+        offCtx.font = font;
+        offCtx.fillStyle = '#ffffff';
+        offCtx.textBaseline = 'top';
+        offCtx.textAlign = 'left';
+        offCtx.fillText(char, 0, 0);
 
-        // Sample on a dense 3px grid across the upper 55% of the letters
-        for (let y = 0; y < offHeight; y += 3) {
-          const normY = y / offHeight;
-          if (normY > 0.6) continue; // Keep lower half solid and readable
+        try {
+          const imgData = offCtx.getImageData(0, 0, charW, charH).data;
+          const strokePoints = [];
 
-          for (let x = 0; x < offWidth; x += 3) {
-            const idx = (y * offWidth + x) * 4;
-            if (data[idx + 3] > 60) {
-              sampled.push({
-                x: relLeft + x,
-                y: relTop + y,
-                normY,
-              });
+          // Sample pixels strictly in the upper 55% of the glyph (the disintegration zone)
+          const maxY = Math.floor(charH * 0.55);
+          for (let y = 1; y < maxY; y += 2) {
+            for (let x = 1; x < charW; x += 2) {
+              const alpha = imgData[(y * charW + x) * 4 + 3];
+              // Non-transparent stroke pixel
+              if (alpha > 80) {
+                strokePoints.push({ x, y, alpha: alpha / 255 });
+              }
             }
           }
-        }
 
-        if (sampled.length > 20) {
-          letterPixels = sampled;
-          return;
+          if (strokePoints.length > 0) {
+            newCache.push({
+              char,
+              element: node,
+              points: strokePoints,
+              charW,
+              charH,
+            });
+          }
+        } catch {
+          // Fallback if canvas security or memory issue
         }
-      } catch (e) {}
+      });
 
-      // Fallback: spawn across letters using font metrics
-      const fallback = [];
-      for (let i = 0; i < 400; i++) {
-        fallback.push({
-          x: relLeft + Math.random() * textRect.width,
-          y: relTop + Math.random() * (textRect.height * 0.45),
-          normY: Math.random() * 0.45,
-        });
-      }
-      letterPixels = fallback;
+      cachedLetterStrokes = newCache;
     };
 
     const resize = () => {
@@ -117,68 +124,74 @@ export function DisintegratingTitle() {
       width = rect.width;
       height = rect.height;
 
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
-      sampleLetterPixels();
+      // Resample letter strokes to match new geometry
+      sampleLetterStrokes();
     };
 
     resize();
     window.addEventListener('resize', resize);
 
-    if (document.fonts) {
+    // Wait for fonts to be fully loaded to ensure pixel-perfect stroke sampling
+    if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(() => {
-        resize();
+        sampleLetterStrokes();
       });
     }
 
-    // 2. Spawn a single powdery dust grain directly from a letter pixel
-    const spawnDustGrain = (textRect, heroRect) => {
+    // Spawn a powdery stardust grain directly from an actual letter stroke
+    const spawnStardustFromLetter = (canvasRect) => {
       if (particles.length >= MAX_PARTICLES) return;
 
       let startX = 0;
       let startY = 0;
 
-      if (letterPixels.length > 0) {
-        // Pick an actual pixel from the letter strokes
-        const p = letterPixels[Math.floor(Math.random() * letterPixels.length)];
-        startX = p.x + (Math.random() - 0.5) * 2;
-        startY = p.y + (Math.random() - 0.5) * 2;
-      } else if (textRect && heroRect) {
-        // Graceful fallback
-        const relLeft = textRect.left - heroRect.left;
-        const relTop = textRect.top - heroRect.top;
-        startX = relLeft + Math.random() * textRect.width;
-        startY = relTop + Math.random() * (textRect.height * 0.45);
+      if (cachedLetterStrokes.length > 0) {
+        // Pick a random letter
+        const letterData = cachedLetterStrokes[Math.floor(Math.random() * cachedLetterStrokes.length)];
+        const pt = letterData.points[Math.floor(Math.random() * letterData.points.length)];
+
+        // Live screen position of this letter
+        const nodeRect = letterData.element.getBoundingClientRect();
+        startX = (nodeRect.left - canvasRect.left) + pt.x;
+        startY = (nodeRect.top - canvasRect.top) + pt.y;
       } else {
-        return;
+        // Fallback before stroke sampling finishes
+        const letterNodes = container.querySelectorAll('.dust-letter-wrap');
+        if (letterNodes.length === 0) return;
+        const node = letterNodes[Math.floor(Math.random() * letterNodes.length)];
+        const nodeRect = node.getBoundingClientRect();
+        startX = (nodeRect.left - canvasRect.left) + Math.random() * nodeRect.width;
+        startY = (nodeRect.top - canvasRect.top) + Math.random() * (nodeRect.height * 0.5);
       }
 
-      // Initial gentle liftoff velocity (starts softly like rising cosmic smoke)
-      const liftVx = (Math.random() - 0.5) * 14;
-      const liftVy = -18 - Math.random() * 26;
+      // Gentle liftoff velocity (soft rising dust)
+      const liftVx = (Math.random() - 0.5) * 10;
+      const liftVy = -18 - Math.random() * 22;
 
       particles.push({
         x: startX,
         y: startY,
         vx: liftVx,
         vy: liftVy,
-        // Powdery dust grain size (0.8px to 1.8px)
-        size: 0.8 + Math.random() * 1.1,
-        // Soft powdery opacity (0.45 to 0.85)
-        alpha: 0.45 + Math.random() * 0.4,
+        // Soft powdery grain radius (0.75px to 1.8px)
+        size: 0.75 + Math.random() * 1.05,
+        // Initial visibility: 100% visible on the letter stroke itself!
+        alpha: 0.85 + Math.random() * 0.15,
         life: 0,
-        maxLife: 3.2 + Math.random() * 1.8,
+        maxLife: 3.5 + Math.random() * 1.6,
         phase: Math.random() * Math.PI * 2,
-        swirlFactor: 0.8 + Math.random() * 0.4,
+        swirlFactor: 0.8 + Math.random() * 0.45,
       });
     };
 
     let lastTime = performance.now();
 
-    // 3. 60FPS Silky-Smooth Gravitational Streamline Loop
+    // 60FPS Silky-Smooth Gravitational Streamline Loop
     const render = (time) => {
       const dt = Math.min((time - lastTime) / 1000, 0.08);
       lastTime = time;
@@ -187,82 +200,77 @@ export function DisintegratingTitle() {
       ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, width, height);
 
-      const heroSection = canvas.closest('#intro') || document.getElementById('intro');
-      const heroRect = heroSection ? heroSection.getBoundingClientRect() : { left: 0, top: 0 };
-      const textRect = textEl.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
 
-      // Continuously spawn fresh powdery dust grains from letter strokes
-      for (let i = 0; i < 6; i++) {
-        spawnDustGrain(textRect, heroRect);
+      // Spawn fresh powdery dust grains directly from letter strokes
+      for (let i = 0; i < 7; i++) {
+        spawnStardustFromLetter(canvasRect);
       }
 
-      // Singularity core coordinates in the exact center of the black hole
+      // Center of the singularity (black hole is centered in #intro)
       const bhX = width / 2;
       const bhY = height / 2;
 
-      // Update and render each powdery dust grain
+      // Update and render each powdery stardust grain
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.life += dt;
 
-        // Vector to black hole core
+        // Vector to black hole singularity center
         const dx = bhX - p.x;
         const dy = bhY - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        // Particle swallowed into singularity core or expired
-        if (dist <= 24 || p.life >= p.maxLife) {
+        // Particle swallowed into event horizon core or expired
+        if (dist <= 20 || p.life >= p.maxLife) {
           particles.splice(i, 1);
           continue;
         }
 
-        // --- SILKY-SMOOTH GRAVITATIONAL STREAMLINE PHYSICS ---
-        // Unit direction vector to singularity
+        // --- SILKY-SMOOTH GRAVITATIONAL STREAMLINE FLOW ---
         const ux = dx / dist;
         const uy = dy / dist;
 
-        // Perpendicular tangential swirl vector (clockwise accretion swirl)
+        // Perpendicular clockwise accretion swirl vector
         const sx = -uy;
         const sy = ux;
 
-        // Smooth speed profile:
-        // Gentle liftoff near letters (~42px/s) accelerating up to ~270px/s near singularity
+        // Smooth speed profile: calm liftoff near letters (~40px/s) accelerating up to ~240px/s near core
         const distClamped = Math.max(0, Math.min(480, dist));
-        const proximity = 1.0 - distClamped / 480;
+        const proximity = Math.pow(1.0 - distClamped / 480, 1.2);
 
-        const smoothSpeed = 42 + proximity * 230;
-        const smoothSwirl = proximity * 145 * p.swirlFactor;
+        const smoothSpeed = 38 + proximity * 210;
+        const smoothSwirl = proximity * 130 * p.swirlFactor;
 
-        // Gentle sinusoidal micro-drift for organic billowing stardust feel
-        const drift = Math.sin(p.y * 0.015 + p.phase + time * 0.0018) * (8 * (1.0 - proximity));
+        // Gentle organic gaseous drift
+        const drift = Math.sin(p.y * 0.014 + p.phase + time * 0.0016) * (5 * (1.0 - proximity));
 
         const targetVx = ux * smoothSpeed + sx * smoothSwirl + drift;
         const targetVy = uy * smoothSpeed + sy * smoothSwirl;
 
-        // Exponential velocity smoothing (steering) - guarantees continuous C^2 curvature with zero jerks
-        const steerRate = 3.6;
+        // Exponential velocity steering (lerp) guarantees liquid-smooth curvature with zero jerks
+        const steerRate = 3.3;
         p.vx += (targetVx - p.vx) * Math.min(1.0, steerRate * dt);
         p.vy += (targetVy - p.vy) * Math.min(1.0, steerRate * dt);
 
         p.x += p.vx * dt;
         p.y += p.vy * dt;
 
-        // Soft fading alpha:
-        // Fades in gently on liftoff, stays luminous, fades out when crossing event horizon
+        // Smooth fading alpha:
+        // Full visibility at the letter stroke, stays bright white, smoothly dissolves into event horizon
         const progress = p.life / p.maxLife;
-        const fadeIn = Math.min(1.0, p.life * 4.0);
-        const fadeHorizon = dist < 75 ? dist / 75 : 1.0;
-        const finalAlpha = Math.max(0, Math.min(1, p.alpha * fadeIn * fadeHorizon * (1.0 - progress * 0.2)));
+        const fadeHorizon = dist < 65 ? dist / 65 : 1.0;
+        const finalAlpha = Math.max(0, Math.min(1, p.alpha * fadeHorizon * (1.0 - progress * 0.25)));
 
-        // --- RENDER DUST GRAINS (SOFT LUMINOUS CIRCULAR PARTICLES, NOT SPARKS) ---
+        // --- RENDER AS SOFT CIRCULAR STARDUST GRAIN (NOT SPARKS) ---
         ctx.fillStyle = `rgba(255, 255, 255, ${finalAlpha.toFixed(3)})`;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
 
-        // Extra soft halo for volumetric stardust glow
-        if (p.size > 1.2) {
-          ctx.fillStyle = `rgba(255, 255, 255, ${(finalAlpha * 0.3).toFixed(3)})`;
+        // Subtle soft halo for volumetric stardust glow
+        if (p.size > 1.25) {
+          ctx.fillStyle = `rgba(255, 255, 255, ${(finalAlpha * 0.22).toFixed(3)})`;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size * 2.2, 0, Math.PI * 2);
           ctx.fill();
@@ -283,7 +291,7 @@ export function DisintegratingTitle() {
 
   return (
     <>
-      {/* 1. Full-section matter siphon canvas covering all of #intro from (0,0) to (W,H) */}
+      {/* 1. Full-section matter siphon canvas covering all of #intro */}
       <canvas
         ref={canvasRef}
         className="singularity-dust-canvas absolute inset-0 w-full h-full pointer-events-none z-10"
@@ -297,14 +305,33 @@ export function DisintegratingTitle() {
         aria-label="Kian Rances Cagadas - Architect / Junior Web & Game Developer"
       >
         <div className="relative flex flex-col items-center max-w-4xl px-4">
-          <h1
-            ref={textRef}
-            className="disintegrating-name font-['Orbitron'] font-black text-3xl sm:text-5xl md:text-6xl lg:text-7xl tracking-[0.16em] uppercase text-white select-none relative"
-          >
-            {/* Pure solid white text with upper disintegration mask */}
-            <span className="disintegrating-white-text block text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]">
-              KIAN RANCES CAGADAS
-            </span>
+          {/* Main Pure White Disintegrating Name with per-letter base & dissolving fringe */}
+          <h1 className="disintegrating-name font-['Orbitron'] font-black text-3xl sm:text-5xl md:text-6xl lg:text-7xl tracking-[0.16em] uppercase text-white select-none relative flex flex-wrap items-center justify-center">
+            {WORDS.map((w, wIdx) => (
+              <span key={w.key} className="inline-flex items-center whitespace-nowrap">
+                {w.text.split('').map((char, cIdx) => (
+                  <span
+                    key={`${w.key}-${cIdx}`}
+                    className="dust-letter-wrap inline-block relative text-white"
+                  >
+                    {/* Lower half: Crisp, pure solid white, 100% readable */}
+                    <span className="dust-letter-base inline-block">
+                      {char}
+                    </span>
+                    {/* Upper half: Dissolving, crumbling stardust erosion edge */}
+                    <span
+                      className="dust-letter-dissolve inline-block"
+                      aria-hidden="true"
+                    >
+                      {char}
+                    </span>
+                  </span>
+                ))}
+                {wIdx < WORDS.length - 1 && (
+                  <span className="inline-block w-3 sm:w-5 md:w-7" aria-hidden="true">&nbsp;</span>
+                )}
+              </span>
+            ))}
           </h1>
 
           {/* Subtle Status Tag */}

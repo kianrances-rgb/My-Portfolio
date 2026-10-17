@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StarfieldCanvas } from './components/Background';
-import { AstroCursor, SiphonCanvas } from './components/Cursor';
 import { FloatingAstro } from './components/FloatingAstro';
 import { Header } from './components/Navigation';
 import { Singularity } from './components/Hero';
@@ -73,16 +72,10 @@ export function App() {
       {/* 2. Fullscreen Volumetric Starfield Canvas Background */}
       <StarfieldCanvas />
 
-      {/* 3. Matter Siphon Particle Canvas for Black Hole accretion */}
-      <SiphonCanvas />
-
-      {/* 4. Interactive 3D Mini Astronaut Cursor */}
-      <AstroCursor />
-
-      {/* 4.5. Floating Astronaut Avatar Companion (Roams smoothly after Page 1) */}
+      {/* 3. Floating Astronaut Avatar Companion (Roams smoothly after Page 1) */}
       <FloatingAstro />
 
-      {/* 5. Fixed Cosmic Telemetry Navigation Bar */}
+      {/* 4. Fixed Cosmic Telemetry Navigation Bar */}
       <Header activeSection={activeSection} onNavigate={handleNavigate} />
 
       {/* 6. Main Content Viewports */}

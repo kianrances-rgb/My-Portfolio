@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BlackHole } from './BlackHole';
 import { TelemetryHud } from './TelemetryHud';
 import { personal } from '../../data/portfolioData';
@@ -16,6 +16,49 @@ import { personal } from '../../data/portfolioData';
 export function Singularity({ shearRatio, distanceText, statusText }) {
   const missionTag = personal?.missionTag || 'MISSION BRIEF // INTERSTELLAR PORTFOLIO';
   const coordinateTag = personal?.coordinateTag || 'SOL-3 // DEV // 2026';
+
+  // Direct mouse proximity listener to update gravitational telemetry smoothly
+  useEffect(() => {
+    const handlePointerMove = (e) => {
+      const bh = window.BlackHoleEngine?.getMetrics
+        ? window.BlackHoleEngine.getMetrics()
+        : { x: window.innerWidth / 2, y: window.innerHeight / 2, radius: 80, tidalRadius: 360 };
+
+      const dx = bh.x - e.clientX;
+      const dy = bh.y - e.clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < bh.tidalRadius) {
+        const proximity = Math.max(0, 1.0 - dist / bh.tidalRadius);
+        const shear = Math.min(1.0, Math.pow(proximity, 1.3));
+        let dText = 'APPROACHING EVENT HORIZON';
+        let sText = 'TIDAL SHEAR DETECTED';
+
+        if (dist <= bh.radius * 0.95) {
+          dText = 'SINGULARITY BREACH';
+          sText = 'RELATIVISTIC SIPHONING';
+        } else if (dist <= bh.radius * 1.5) {
+          dText = 'CRITICAL TIDAL RADIUS';
+          sText = 'GRAVITATIONAL STRETCH';
+        }
+
+        window.dispatchEvent(
+          new CustomEvent('cosmic-telemetry-update', {
+            detail: { shearRatio: shear, distanceText: dText, statusText: sText },
+          })
+        );
+      } else {
+        window.dispatchEvent(
+          new CustomEvent('cosmic-telemetry-update', {
+            detail: { shearRatio: 0, distanceText: 'SAFE ORBIT', statusText: 'DORMANT' },
+          })
+        );
+      }
+    };
+
+    window.addEventListener('mousemove', handlePointerMove, { passive: true });
+    return () => window.removeEventListener('mousemove', handlePointerMove);
+  }, []);
 
   const handleScrollToGalaxy = (e) => {
     e.preventDefault();
@@ -38,13 +81,29 @@ export function Singularity({ shearRatio, distanceText, statusText }) {
   };
 
   const handleTestSpaghetti = () => {
-    // Dispatch custom event for AstroCursor / physics engine siphoning simulation
-    window.dispatchEvent(new CustomEvent('trigger-spaghetti-demo'));
-
     // Trigger Hawking radiation burst on BlackHole engine for instant visual payoff
     if (window.BlackHoleEngine?.triggerHawkingFlash) {
       window.BlackHoleEngine.triggerHawkingFlash();
     }
+    const flare = document.getElementById('hawking-radiation-flash');
+    if (flare) {
+      flare.classList.remove('flare');
+      void flare.offsetWidth;
+      flare.classList.add('flare');
+      setTimeout(() => flare.classList.remove('flare'), 650);
+    }
+    window.dispatchEvent(
+      new CustomEvent('cosmic-telemetry-update', {
+        detail: { shearRatio: 0.98, distanceText: 'SINGULARITY BREACH', statusText: 'QUANTUM BURST' },
+      })
+    );
+    setTimeout(() => {
+      window.dispatchEvent(
+        new CustomEvent('cosmic-telemetry-update', {
+          detail: { shearRatio: 0, distanceText: 'SAFE ORBIT', statusText: 'DORMANT' },
+        })
+      );
+    }, 1400);
   };
 
   return (
@@ -134,7 +193,7 @@ export function Singularity({ shearRatio, distanceText, statusText }) {
             <line x1="12" y1="6" x2="12" y2="10" />
           </svg>
           <span>
-            Guide the mini astronaut cursor toward the warping black hole to witness relativistic spaghettification.
+            Move your cursor toward the warping black hole to observe relativistic gravitational shear telemetry.
           </span>
         </div>
 

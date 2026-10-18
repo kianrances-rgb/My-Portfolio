@@ -1,5 +1,4 @@
 import React from 'react';
-import { Andromeda } from './Andromeda';
 import { AcademicCard } from './AcademicCard';
 import { education } from '../../data/portfolioData';
 
@@ -23,10 +22,7 @@ export function GalaxyPanel() {
         aria-hidden="true"
       />
 
-      {/* 2. Andromeda Galaxy (M31) Canvas Simulation */}
-      <Andromeda />
-
-      {/* 3. Panel Content Container */}
+      {/* 2. Panel Content Container */}
       <div className="panel-container relative max-w-7xl mx-auto w-full z-[2]">
         {/* Section Header */}
         <header className="panel-header text-center mb-16 relative">

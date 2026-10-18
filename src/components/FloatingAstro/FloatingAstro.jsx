@@ -45,21 +45,23 @@ const SECTOR_GUIDES = {
     ],
   },
   galaxy: {
-    sector: 'SECTOR 01 // GALAXY',
-    icon: '🌌',
+    sector: 'SECTOR 01 // LUNAR ORBIT & GALAXY',
+    icon: '🌙',
     messages: [
-      "Welcome to Sector 01: Galaxy! Here lies Kian's academic journey and engineering foundation.",
-      "Explore his degrees at ICCT Colleges and DAEHAN ICT Strand in the orbital cards.",
-      "Behind the milestones, an astrophysical 14,000-star Andromeda spiral galaxy is actively rotating!",
+      "Entering Lunar Orbit! Look to the right: a photorealistic 3D Moon with real-time crater depth!",
+      "Click or touch and drag directly on the 3D Moon to spin it in zero-g with realistic momentum!",
+      "Notice the asteroid rocks tumbling in gravitational orbit around the lunar surface.",
+      "Explore Kian's academic foundation across ICCT Colleges and DAEHAN ICT Strand in the orbital cards.",
     ],
   },
   supernova: {
     sector: 'SECTOR 02 // SUPERNOVA',
     icon: '⚡',
     messages: [
-      "You're inside Sector 02: Supernova! Powered by a spinning relativistic neutron star.",
+      "You're inside Sector 02: Supernova! Notice how the 3D Moon shifts angle under solar radiation.",
+      "You can click and drag the 3D Moon at any time to inspect its day/night terminator crater shadows!",
       "Here are Kian's technical skills forged across Languages, Frontend, Backend, and Systems.",
-      "Use the interactive filter bar above to filter by your preferred energy cluster!",
+      "Use the interactive filter bar above to filter by your preferred technical energy cluster!",
     ],
   },
   contact: {

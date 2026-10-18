@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { NeutronStar } from './NeutronStar';
 import { SkillPill } from './SkillPill';
 import { skillCategories } from '../../data/portfolioData';
 
@@ -14,7 +13,7 @@ const FILTER_TABS = [
 /**
  * SupernovaPanel Component
  * Sector 02 // Stellar Detonation: Technical Mastery & Core Skills
- * Houses the revolving Neutron Star simulation, filter bar, and skill clusters.
+ * Houses the filter bar and skill clusters against the 3D Moon background.
  */
 export function SupernovaPanel() {
   const [activeTab, setActiveTab] = useState('all');
@@ -36,10 +35,7 @@ export function SupernovaPanel() {
         aria-hidden="true"
       />
 
-      {/* 2. Revolving Neutron Star HD Graphics & Physics Simulation Canvas */}
-      <NeutronStar />
-
-      {/* 3. Panel Container */}
+      {/* 2. Panel Container */}
       <div className="panel-container relative max-w-7xl mx-auto w-full z-[2]">
         {/* Section Header */}
         <header className="panel-header text-center mb-10 relative">

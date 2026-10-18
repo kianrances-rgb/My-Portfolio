@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StarfieldCanvas } from './components/Background';
+import { StarfieldCanvas, MoonCanvas } from './components/Background';
 import { FloatingAstro } from './components/FloatingAstro';
 import { Header } from './components/Navigation';
 import { Singularity } from './components/Hero';
@@ -72,7 +72,10 @@ export function App() {
       {/* 2. Fullscreen Volumetric Starfield Canvas Background */}
       <StarfieldCanvas />
 
-      {/* 3. Floating Astronaut Avatar Companion (Roams smoothly after Page 1) */}
+      {/* 2.5. Photorealistic 3D Interactive Moon Background (Active after Page 1) */}
+      <MoonCanvas />
+
+      {/* 3. Floating Astronaut Avatar Companion (Roams smoothly along perimeter) */}
       <FloatingAstro />
 
       {/* 4. Fixed Cosmic Telemetry Navigation Bar */}

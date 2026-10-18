@@ -175,18 +175,11 @@ export function Header({ activeSection: activeSectionProp, onSectionChange, onNa
                 <h1 className="font-orbitron font-extrabold text-sm sm:text-base md:text-lg tracking-[0.16em] uppercase text-[#f4f8ff] drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] group-hover:text-cyan-200 transition-colors">
                   {personal.name}
                 </h1>
-                {/* Specular sheen pass synchronized with 5s comet */}
+                {/* Specular sheen pass across brand title */}
                 <span className="brand-title-sheen" aria-hidden="true">
                   {personal.name}
                 </span>
               </a>
-
-              {/* Passing Comet Sweep across title (repeats every 5s) */}
-              <div className="comet-sweep" aria-hidden="true">
-                <div className="comet-head" />
-                <div className="comet-tail" />
-                <div className="comet-sparks" />
-              </div>
             </div>
           </div>
 

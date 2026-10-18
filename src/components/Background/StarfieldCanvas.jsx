@@ -6,11 +6,12 @@ import React, { useEffect, useRef } from 'react';
  * - 350 volumetric stars across 3 depth parallax layers
  * - Twinkle dynamics & slow celestial drift
  * - Mouse-driven smooth lerp parallax
- * - Silky-Smooth Shooting Star / Meteor Engine:
- *   • Continuous lifecycle: Ignition -> Smooth Cruise -> Tail Contraction -> Seamless Dissolve
- *   • Zero sudden popping or hard disappearance: tail smoothly contracts into head upon burnout
- *   • Multi-pass tapered glowing plasma aura with pure white incandescent core
- *   • Natural cadence (every 4 to 8 seconds) with varied diagonal radiants
+ * - Authentic Path-History Shooting Star Engine:
+ *   • The meteoroid head flies forward and paints an authentic ionization trail across the sky
+ *   • Trail points remain stationary in space where the meteor passed, fading and diffusing in place
+ *   • Eliminates any rigid "moving PNG/stick" appearance completely
+ *   • Tapered dual-pass glow: inner pure white core + outer cyan ionization wake
+ *   • Microscopic ablation sparks shedding into the wake with atmospheric drag
  * - DevicePixelRatio Retina rendering
  * - Lifecycle pause on hidden tab
  */
@@ -92,45 +93,41 @@ export function StarfieldCanvas() {
     };
 
     // =========================================================================
-    // SILKY-SMOOTH SHOOTING STAR & METEOR ENGINE
+    // TRUE PATH-HISTORY SHOOTING STAR & METEOR ENGINE
     // =========================================================================
     let meteors = [];
-    let nextMeteorTimer = 2.0 + Math.random() * 3.0; // Spawns every 3.5 - 7 seconds
+    let nextMeteorTimer = 2.0 + Math.random() * 2.5;
 
     const spawnMeteor = () => {
-      // Natural diagonal trajectory (28° to 48° downward-right)
-      const angle = (Math.PI * 0.21) + (Math.random() - 0.5) * 0.3;
-      const speed = 750 + Math.random() * 350; // Smooth 750 - 1100 px/sec (visible & majestic)
-      const isFireball = Math.random() < 0.25;
+      // Natural diagonal trajectory (24° to 46° downward-right)
+      const angle = (Math.PI * 0.20) + (Math.random() - 0.5) * 0.32;
+      const speed = 850 + Math.random() * 350; // Smooth 850 - 1200 px/sec
 
-      // Realistic entry origin along top or upper-left
+      // Entry origin along top or upper-left
       let startX, startY;
       if (Math.random() > 0.45) {
-        startX = Math.random() * (width * 0.8);
-        startY = -20;
+        startX = Math.random() * (width * 0.85);
+        startY = -30;
       } else {
-        startX = -20;
-        startY = Math.random() * (height * 0.4);
+        startX = -30;
+        startY = Math.random() * (height * 0.45);
       }
 
-      const burnDuration = isFireball ? (0.95 + Math.random() * 0.25) : (0.75 + Math.random() * 0.25);
-      const fadeDuration = 0.32; // Time for tail to contract and dissolve after head burns out
+      const burnDuration = 0.75 + Math.random() * 0.35; // 0.75s to 1.1s active flight
+      const trailLife = 0.38; // Trail lingers stationary for 0.38s in space
 
       meteors.push({
-        startX,
-        startY,
+        x: startX,
+        y: startY,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
-        angle,
         speed,
+        angle,
         age: 0,
         burnDuration,
-        fadeDuration,
-        totalDuration: burnDuration + fadeDuration,
-        maxTrailLength: isFireball ? (240 + Math.random() * 60) : (170 + Math.random() * 50),
-        thickness: isFireball ? 2.4 : 1.6,
-        isFireball,
-        color: isFireball ? '#ffdd88' : '#5de6ff',
+        trailLife,
+        history: [], // [{x, y, time, brightness}]
+        embers: [],
       });
     };
 
@@ -213,107 +210,132 @@ export function StarfieldCanvas() {
         if (meteors.length < 2) {
           spawnMeteor();
         }
-        nextMeteorTimer = 4.0 + Math.random() * 4.5; // Next star in 4 - 8.5 seconds
+        nextMeteorTimer = 3.5 + Math.random() * 4.5; // Next star in 3.5 - 8 seconds
       }
 
-      // 3. Render and update meteors with continuous smooth animation lifecycle
+      // 3. Render and update meteors with True Path-History Particle Engine
       for (let i = meteors.length - 1; i >= 0; i--) {
         const m = meteors[i];
         m.age += dt;
 
-        if (m.age >= m.totalDuration) {
-          meteors.splice(i, 1);
-          continue;
-        }
-
-        // --- CALCULATE HEAD POSITION ---
-        let headX, headY;
         const isBurning = m.age <= m.burnDuration;
 
         if (isBurning) {
-          headX = m.startX + m.vx * m.age;
-          headY = m.startY + m.vy * m.age;
-        } else {
-          // Head reached burnout position and extinguished
-          headX = m.startX + m.vx * m.burnDuration;
-          headY = m.startY + m.vy * m.burnDuration;
+          // Advance the meteoroid head forward
+          m.x += m.vx * dt;
+          m.y += m.vy * dt;
+
+          // Head brightness light curve (gentle ignition ramp and burnout taper)
+          let headBrightness = 1.0;
+          if (m.age < 0.12) {
+            headBrightness = m.age / 0.12;
+          } else if (m.age > m.burnDuration - 0.18) {
+            headBrightness = Math.max(0, (m.burnDuration - m.age) / 0.18);
+          }
+
+          // Deposit a point in the trail anchored at this exact sky coordinate
+          m.history.push({
+            x: m.x,
+            y: m.y,
+            time: now,
+            brightness: headBrightness,
+          });
+
+          // Shed occasional micro-embers along the path
+          if (Math.random() < 0.28) {
+            m.embers.push({
+              x: m.x + (Math.random() - 0.5) * 4,
+              y: m.y + (Math.random() - 0.5) * 4,
+              vx: m.vx * 0.12 + (Math.random() - 0.5) * 35,
+              vy: m.vy * 0.12 + (Math.random() - 0.5) * 35,
+              life: 0.18 + Math.random() * 0.2,
+              maxLife: 0.38,
+              size: 0.75 + Math.random() * 1.1,
+            });
+          }
         }
 
-        // --- CALCULATE DYNAMIC TRAIL LENGTH (Grows on birth, contracts on death) ---
-        let currentLength = m.maxTrailLength;
-        const birthDuration = 0.22; // Seconds for trail to fully unfurl
-
-        if (m.age < birthDuration) {
-          // Phase 1: Smoothly unfurl from 0 length
-          currentLength = m.maxTrailLength * (m.age / birthDuration);
-        } else if (!isBurning) {
-          // Phase 3: Head has burned out; tail contracts smoothly toward head
-          const fadeProgress = (m.age - m.burnDuration) / m.fadeDuration;
-          currentLength = m.maxTrailLength * Math.max(0, 1.0 - fadeProgress);
+        // Prune expired trail points
+        while (m.history.length > 0 && (now - m.history[0].time) / 1000 > m.trailLife) {
+          m.history.shift();
         }
 
-        // Tail coordinate trailing behind head
-        const tailX = headX - Math.cos(m.angle) * currentLength;
-        const tailY = headY - Math.sin(m.angle) * currentLength;
-
-        // --- CALCULATE OPACITY ---
-        let alpha = 1.0;
-        if (m.age < 0.14) {
-          // Fade in gently on ignition
-          alpha = m.age / 0.14;
-        } else if (!isBurning) {
-          // Fade out smoothly to 0 on burnout
-          const fadeProgress = (m.age - m.burnDuration) / m.fadeDuration;
-          alpha = Math.max(0, 1.0 - fadeProgress);
-        }
-
-        if (currentLength < 2 || alpha < 0.01) {
+        // If meteor burned out and all trail points and embers have dissolved
+        if (!isBurning && m.history.length === 0 && m.embers.length === 0) {
+          meteors.splice(i, 1);
           continue;
         }
 
         ctx.save();
 
-        // --- PASS 1: Outer Glowing Atmospheric Plasma Aura ---
-        const outerGrad = ctx.createLinearGradient(tailX, tailY, headX, headY);
-        outerGrad.addColorStop(0.0, 'rgba(0, 0, 0, 0)');
-        outerGrad.addColorStop(0.4, `${m.color === '#ffdd88' ? 'rgba(255, 180, 50, ' : 'rgba(93, 230, 255, '}${(alpha * 0.25).toFixed(3)})`);
-        outerGrad.addColorStop(0.85, `${m.color === '#ffdd88' ? 'rgba(255, 220, 120, ' : 'rgba(180, 240, 255, '}${(alpha * 0.65).toFixed(3)})`);
-        outerGrad.addColorStop(1.0, `rgba(255, 255, 255, ${(alpha * 0.95).toFixed(3)})`);
+        // --- RENDER TRAIL AS A REAL PATH PAINTED ACROSS THE SKY ---
+        if (m.history.length > 1) {
+          // Pass 1: Outer glowing plasma sheath
+          for (let j = 0; j < m.history.length - 1; j++) {
+            const p1 = m.history[j];
+            const p2 = m.history[j + 1];
 
-        ctx.strokeStyle = outerGrad;
-        ctx.lineWidth = m.thickness * 2.5;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(tailX, tailY);
-        ctx.lineTo(headX, headY);
-        ctx.stroke();
+            const ageSec = (now - p2.time) / 1000;
+            const progress = Math.max(0, Math.min(1, ageSec / m.trailLife)); // 0 = newest, 1 = oldest
+            const alpha = Math.pow(1.0 - progress, 1.4) * p2.brightness;
 
-        // --- PASS 2: Inner Incandescent Pure White Core Ray ---
-        const coreGrad = ctx.createLinearGradient(tailX, tailY, headX, headY);
-        coreGrad.addColorStop(0.0, 'rgba(255, 255, 255, 0)');
-        coreGrad.addColorStop(0.5, `rgba(255, 255, 255, ${(alpha * 0.4).toFixed(3)})`);
-        coreGrad.addColorStop(1.0, `rgba(255, 255, 255, ${(alpha * 0.98).toFixed(3)})`);
+            if (alpha <= 0.01) continue;
 
-        ctx.strokeStyle = coreGrad;
-        ctx.lineWidth = m.thickness * 0.85;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(tailX, tailY);
-        ctx.lineTo(headX, headY);
-        ctx.stroke();
+            const width = 0.6 + (1.0 - progress) * 2.8;
 
-        // --- PASS 3: Brilliant Star Head (Active while head is burning) ---
+            ctx.strokeStyle = `rgba(93, 230, 255, ${(alpha * 0.28).toFixed(3)})`;
+            ctx.lineWidth = width * 2.2;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+
+            // Pass 2: Inner incandescent white core
+            ctx.strokeStyle = `rgba(255, 255, 255, ${(alpha * 0.95).toFixed(3)})`;
+            ctx.lineWidth = width * 0.85;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+
+        // --- RENDER BLAZING METEOROID HEAD (While actively burning) ---
         if (isBurning) {
-          // Sharp white core
-          ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
+          let headBrightness = 1.0;
+          if (m.age < 0.12) headBrightness = m.age / 0.12;
+          else if (m.age > m.burnDuration - 0.18) headBrightness = Math.max(0, (m.burnDuration - m.age) / 0.18);
+
+          // Intense pure white core
+          ctx.fillStyle = `rgba(255, 255, 255, ${headBrightness.toFixed(3)})`;
           ctx.beginPath();
-          ctx.arc(headX, headY, m.thickness * 1.35, 0, Math.PI * 2);
+          ctx.arc(m.x, m.y, 2.2, 0, Math.PI * 2);
           ctx.fill();
 
-          // Soft radiant bloom halo
-          ctx.fillStyle = `${m.color === '#ffdd88' ? 'rgba(255, 200, 100, ' : 'rgba(93, 230, 255, '}${(alpha * 0.38).toFixed(3)})`;
+          // Shockwave bloom halo
+          ctx.fillStyle = `rgba(93, 230, 255, ${(headBrightness * 0.45).toFixed(3)})`;
           ctx.beginPath();
-          ctx.arc(headX, headY, m.thickness * 3.2, 0, Math.PI * 2);
+          ctx.arc(m.x, m.y, 6.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // --- RENDER LINGERING ABLATION EMBERS ---
+        for (let k = m.embers.length - 1; k >= 0; k--) {
+          const emb = m.embers[k];
+          emb.x += emb.vx * dt;
+          emb.y += emb.vy * dt;
+          emb.vx *= 0.92;
+          emb.vy *= 0.92;
+          emb.life -= dt;
+          if (emb.life <= 0) {
+            m.embers.splice(k, 1);
+            continue;
+          }
+          const embAlpha = emb.life / emb.maxLife;
+          ctx.fillStyle = `rgba(255, 255, 255, ${(embAlpha * 0.85).toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(emb.x, emb.y, emb.size, 0, Math.PI * 2);
           ctx.fill();
         }
 

@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react';
 /**
  * SiphonParticle
  * Represents ionized plasma and relativistic matter particles torn from
- * the astronaut and accelerated along geodesic spiral trajectories into
+ * the astronaut and accelerated along geodesic trajectories into
  * the gravitational singularity of the black hole.
  */
 class SiphonParticle {
@@ -25,7 +25,6 @@ class SiphonParticle {
     this.decay = 0.005 + Math.random() * 0.008;
     this.size = 1.5 + Math.random() * 2.5;
 
-    // Relativistic glowing colors: Gold, Orange, Cyan, Magenta, White
     const colors = [
       'rgba(255, 230, 100, ',
       'rgba(255, 120, 40, ',
@@ -42,16 +41,14 @@ class SiphonParticle {
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist < 15) {
-      this.life = 0; // Ingested into the singularity core
+      this.life = 0;
       return;
     }
 
-    // Inward gravitational acceleration ~ 1 / dist
     const gravForce = Math.min(5.0, 95.0 / Math.max(dist, 10.0));
     this.vx += (dx / dist) * gravForce * 0.04;
     this.vy += (dy / dist) * gravForce * 0.04;
 
-    // Spiral swirl damping
     this.vx *= 0.985;
     this.vy *= 0.985;
 
@@ -75,10 +72,98 @@ class SiphonParticle {
 }
 
 /**
+ * QuantumTunnelParticle
+ * Represents the disintegrated avatar stardust particles streaming
+ * across spacetime from the black hole center directly into the bottom-right respawn area.
+ */
+class QuantumTunnelParticle {
+  constructor(startX, startY, destX, destY) {
+    this.x = startX;
+    this.y = startY;
+    this.destX = destX;
+    this.destY = destY;
+
+    // Direct trajectory vector to respawn coordinates
+    const angleToDest = Math.atan2(destY - startY, destX - startX);
+    // Orthogonal arching curve giving a graceful relativistic streamline
+    const perpAngle = angleToDest + (Math.PI / 2) * (Math.random() > 0.5 ? 1 : -1);
+    const speed = 5.0 + Math.random() * 6.5;
+    const arcSpread = (Math.random() - 0.5) * 5.0;
+
+    this.vx = Math.cos(angleToDest) * speed + Math.cos(perpAngle) * arcSpread;
+    this.vy = Math.sin(angleToDest) * speed + Math.sin(perpAngle) * arcSpread;
+
+    this.life = 1.0;
+    this.decay = 0.005 + Math.random() * 0.006;
+    this.size = 2.0 + Math.random() * 2.8;
+
+    // Glowing iridescent cosmic colors
+    const colors = [
+      'rgba(0, 255, 204, ',
+      'rgba(93, 230, 255, ',
+      'rgba(255, 215, 0, ',
+      'rgba(255, 255, 255, ',
+      'rgba(179, 136, 255, ',
+    ];
+    this.colorBase = colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  update() {
+    const dx = this.destX - this.x;
+    const dy = this.destY - this.y;
+    const dist = Math.hypot(dx, dy);
+
+    // If arrived at respawn destination, converge into a vortex and merge into avatar
+    if (dist < 32) {
+      this.life -= 0.045;
+      this.vx = (dy / dist) * 3.0 - (dx / dist) * 2.0;
+      this.vy = -(dx / dist) * 3.0 - (dy / dist) * 2.0;
+      this.x += this.vx;
+      this.y += this.vy;
+      return;
+    }
+
+    // Accelerate strongly towards bottom-right destination
+    const pull = Math.min(15.0, 220.0 / Math.max(dist, 15.0)) + 0.6;
+    this.vx += (dx / dist) * pull * 0.45;
+    this.vy += (dy / dist) * pull * 0.45;
+
+    this.vx *= 0.965;
+    this.vy *= 0.965;
+
+    this.x += this.vx;
+    this.y += this.vy;
+    this.life -= this.decay;
+  }
+
+  draw(ctx) {
+    if (this.life <= 0) return;
+    const alpha = Math.max(0, this.life);
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 255, 204, 0.9)';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = `${this.colorBase}${alpha})`;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, Math.max(0.2, this.size * Math.min(1.0, alpha * 1.2)), 0, Math.PI * 2);
+    ctx.fill();
+
+    // High-speed motion streak
+    ctx.strokeStyle = `${this.colorBase}${alpha * 0.65})`;
+    ctx.lineWidth = Math.max(0.5, this.size * 0.45);
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(this.x - this.vx * 2.0, this.y - this.vy * 2.0);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+}
+
+/**
  * SiphonCanvas Component
- * Fullscreen high-performance 2D canvas that renders relativistic matter siphon
- * particle streams during tidal spaghettification.
- * Handles resize, DPR scaling, and registers the global `window.emitSiphonParticle` API.
+ * Fullscreen high-performance 2D canvas that renders both tidal siphon streams
+ * and quantum tunneling disintegration matter streams that travel directly
+ * from the black hole to the bottom-right respawn zone.
  */
 export function SiphonCanvas() {
   const canvasRef = useRef(null);
@@ -91,11 +176,10 @@ export function SiphonCanvas() {
     if (!ctx) return;
 
     const particles = [];
-    const MAX_SIPHON_PARTICLES = 160;
+    const MAX_PARTICLES = 220;
     let animId = null;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    // Resize canvas with DPR scaling
     const resizeCanvas = () => {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       const width = window.innerWidth;
@@ -109,23 +193,35 @@ export function SiphonCanvas() {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas, { passive: true });
 
-    // Global emission API matching cursor.js
+    // Standard Black Hole Siphon API
     const emitParticle = (startX, startY, bhX, bhY) => {
-      if (particles.length < MAX_SIPHON_PARTICLES) {
+      if (particles.length < MAX_PARTICLES) {
         particles.push(new SiphonParticle(startX, startY, bhX, bhY));
       }
     };
 
+    // Dedicated Quantum Tunneling API (Directly from Black Hole to Respawn Zone)
+    const emitTunnelParticle = (startX, startY, destX, destY) => {
+      if (particles.length < MAX_PARTICLES) {
+        particles.push(new QuantumTunnelParticle(startX, startY, destX, destY));
+      }
+    };
+
     window.emitSiphonParticle = emitParticle;
+    window.emitQuantumTunnelParticle = emitTunnelParticle;
 
     // Listen to custom event for decoupled emissions
     const handleEmitEvent = (e) => {
       if (!e.detail) return;
-      const { startX, startY, bhX, bhY } = e.detail;
+      const { startX, startY, bhX, bhY, destX, destY, isTunnel } = e.detail;
       if (typeof startX === 'number' && typeof startY === 'number') {
-        const targetX = typeof bhX === 'number' ? bhX : window.innerWidth / 2;
-        const targetY = typeof bhY === 'number' ? bhY : window.innerHeight / 2;
-        emitParticle(startX, startY, targetX, targetY);
+        if (isTunnel && typeof destX === 'number' && typeof destY === 'number') {
+          emitTunnelParticle(startX, startY, destX, destY);
+        } else {
+          const targetX = typeof bhX === 'number' ? bhX : window.innerWidth / 2;
+          const targetY = typeof bhY === 'number' ? bhY : window.innerHeight / 2;
+          emitParticle(startX, startY, targetX, targetY);
+        }
       }
     };
 
@@ -134,10 +230,8 @@ export function SiphonCanvas() {
     // Animation Render Loop
     const render = () => {
       ctx.save();
-      // Clear scaled canvas viewport
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // Apply DPR scaling for crisp high-density particle drawing
       ctx.scale(dpr, dpr);
 
       for (let i = particles.length - 1; i >= 0; i--) {
@@ -161,6 +255,9 @@ export function SiphonCanvas() {
       window.removeEventListener('emit-siphon-particle', handleEmitEvent);
       if (window.emitSiphonParticle === emitParticle) {
         delete window.emitSiphonParticle;
+      }
+      if (window.emitQuantumTunnelParticle === emitTunnelParticle) {
+        delete window.emitQuantumTunnelParticle;
       }
     };
   }, []);

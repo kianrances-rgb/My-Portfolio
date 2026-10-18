@@ -218,17 +218,29 @@ export function FloatingAstro() {
     p.vx = 0;
     p.vy = 0;
 
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const bottomX = Math.max(30, w - 140);
+    const bottomY = Math.max(120, h - 160);
+    const destCenterX = bottomX + 50;
+    const destCenterY = bottomY + 50;
+
     if (typeof playChime === 'function') playChime();
 
-    // Emit concentrated stream of relativistic matter siphon particles
-    for (let i = 0; i < 36; i++) {
+    // Stream disintegrated stardust directly from black hole to bottom-right respawn zone
+    for (let i = 0; i < 65; i++) {
       setTimeout(() => {
-        if (typeof window.emitSiphonParticle === 'function') {
-          const offsetX = (Math.random() - 0.5) * 40;
-          const offsetY = (Math.random() - 0.5) * 40;
-          window.emitSiphonParticle(p.x + 50 + offsetX, p.y + 50 + offsetY, bhX, bhY);
+        if (typeof window.emitQuantumTunnelParticle === 'function') {
+          const offsetX = (Math.random() - 0.5) * 35;
+          const offsetY = (Math.random() - 0.5) * 35;
+          window.emitQuantumTunnelParticle(
+            bhX + offsetX,
+            bhY + offsetY,
+            destCenterX,
+            destCenterY
+          );
         }
-      }, i * 14);
+      }, i * 15);
     }
 
     // Telemetry notification: Singularity Breach
@@ -258,13 +270,8 @@ export function FloatingAstro() {
       );
     }, 450);
 
-    // Stage 3: Quantum Tunneling to Bottom-Right of Website (at 1250ms)
+    // Stage 3: Quantum Tunneling positioning at Bottom-Right of Website (at 1000ms)
     setTimeout(() => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      const bottomX = Math.max(30, w - 140);
-      const bottomY = Math.max(120, h - 160);
-
       p.x = bottomX;
       p.y = bottomY;
       p.targetX = bottomX;
@@ -274,9 +281,9 @@ export function FloatingAstro() {
       p.currentZone = 'BOTTOM';
       setPos({ x: bottomX, y: bottomY });
       setDisintegrateStage('tunneling');
-    }, 1250);
+    }, 1000);
 
-    // Stage 4: Re-materialization & Respawn in Bottom-Right (at 1650ms)
+    // Stage 4: Re-materialization & Respawn as Stardust Converges in Bottom-Right (at 1450ms)
     setTimeout(() => {
       setDisintegrateStage('respawning');
       if (typeof playChime === 'function') playChime();

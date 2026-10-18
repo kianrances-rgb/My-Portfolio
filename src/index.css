@@ -340,17 +340,16 @@
    ========================================================================== */
 @keyframes cometPassCycle {
   0% {
-    left: -150px;
+    left: -180px;
     opacity: 0;
   }
-  3% {
-    opacity: 1;
-  }
-  22% {
-    left: calc(100% + 140px);
+  2.5% {
     opacity: 0.95;
   }
-  25% {
+  20% {
+    opacity: 0.95;
+  }
+  24% {
     left: calc(100% + 160px);
     opacity: 0;
   }
@@ -383,14 +382,14 @@
 .comet-sweep {
   position: absolute;
   top: 50%;
-  left: -140px;
-  width: 160px;
+  left: -180px;
+  width: 170px;
   height: 30px;
   transform: translateY(-50%) rotate(-6deg);
   pointer-events: none;
   z-index: 5;
   opacity: 0;
-  animation: cometPassCycle 5s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+  animation: cometPassCycle 6s cubic-bezier(0.25, 0.85, 0.35, 1) infinite;
 }
 
 .comet-head {

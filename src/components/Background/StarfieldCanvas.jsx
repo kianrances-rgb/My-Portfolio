@@ -6,13 +6,11 @@ import React, { useEffect, useRef } from 'react';
  * - 350 volumetric stars across 3 depth parallax layers
  * - Twinkle dynamics & slow celestial drift
  * - Mouse-driven smooth lerp parallax
- * - Physically based hypersonic meteor & shooting star engine:
- *   • Hypersonic entry velocity (1600 - 3200 px/sec)
- *   • Aerodynamic light curve (ignition, peak incandescence, terminal ablation flare)
- *   • Dynamic history-based ionization trail (train) that grows and dissipates naturally
- *   • Dual-pass rendering: outer atmospheric plasma column + incandescent white-hot core
- *   • Atmospheric drag micro-ember sparks shedding along the flight path
- *   • Rare brilliant fireballs (bolides) with terminal fragmentation
+ * - Silky-Smooth Shooting Star / Meteor Engine:
+ *   • Continuous lifecycle: Ignition -> Smooth Cruise -> Tail Contraction -> Seamless Dissolve
+ *   • Zero sudden popping or hard disappearance: tail smoothly contracts into head upon burnout
+ *   • Multi-pass tapered glowing plasma aura with pure white incandescent core
+ *   • Natural cadence (every 4 to 8 seconds) with varied diagonal radiants
  * - DevicePixelRatio Retina rendering
  * - Lifecycle pause on hidden tab
  */
@@ -94,49 +92,45 @@ export function StarfieldCanvas() {
     };
 
     // =========================================================================
-    // PHYSICALLY BASED SHOOTING STAR & METEOR ENGINE
+    // SILKY-SMOOTH SHOOTING STAR & METEOR ENGINE
     // =========================================================================
     let meteors = [];
-    let nextMeteorDelay = 2.5 + Math.random() * 3.5; // Natural astronomical cadence
+    let nextMeteorTimer = 2.0 + Math.random() * 3.0; // Spawns every 3.5 - 7 seconds
 
     const spawnMeteor = () => {
-      // Natural diagonal trajectory with slight angle variance
-      const angle = (Math.PI * 0.22) + (Math.random() - 0.5) * 0.4; // 25° - 55° downward-right
-      const speed = 1600 + Math.random() * 1400; // Hypersonic 1600 - 3000 px/sec
-      const isFireball = Math.random() < 0.24; // 24% are dazzling fireballs
+      // Natural diagonal trajectory (28° to 48° downward-right)
+      const angle = (Math.PI * 0.21) + (Math.random() - 0.5) * 0.3;
+      const speed = 750 + Math.random() * 350; // Smooth 750 - 1100 px/sec (visible & majestic)
+      const isFireball = Math.random() < 0.25;
 
-      // Realistic entry position: starts along top or upper-left perimeter
+      // Realistic entry origin along top or upper-left
       let startX, startY;
-      if (Math.random() > 0.4) {
-        startX = Math.random() * (width * 0.75);
+      if (Math.random() > 0.45) {
+        startX = Math.random() * (width * 0.8);
         startY = -20;
       } else {
         startX = -20;
-        startY = Math.random() * (height * 0.45);
+        startY = Math.random() * (height * 0.4);
       }
 
-      const duration = isFireball ? (0.48 + Math.random() * 0.22) : (0.28 + Math.random() * 0.18);
-      const trailDuration = isFireball ? 0.16 : 0.09;
+      const burnDuration = isFireball ? (0.95 + Math.random() * 0.25) : (0.75 + Math.random() * 0.25);
+      const fadeDuration = 0.32; // Time for tail to contract and dissolve after head burns out
 
       meteors.push({
-        x: startX,
-        y: startY,
         startX,
         startY,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
-        speed,
         angle,
+        speed,
         age: 0,
-        duration,
-        trailDuration,
-        thickness: isFireball ? (2.2 + Math.random() * 0.8) : (1.2 + Math.random() * 0.7),
+        burnDuration,
+        fadeDuration,
+        totalDuration: burnDuration + fadeDuration,
+        maxTrailLength: isFireball ? (240 + Math.random() * 60) : (170 + Math.random() * 50),
+        thickness: isFireball ? 2.4 : 1.6,
         isFireball,
-        flareTime: duration * (0.6 + Math.random() * 0.2),
-        flareDone: false,
-        // Spectral emission colors: pure white core with electric cyan or warm gold ionization
-        color: isFireball ? (Math.random() > 0.5 ? '#00ffcc' : '#ffdd88') : (Math.random() > 0.4 ? '#5de6ff' : '#ffffff'),
-        embers: [],
+        color: isFireball ? '#ffdd88' : '#5de6ff',
       });
     };
 
@@ -213,139 +207,113 @@ export function StarfieldCanvas() {
         }
       }
 
-      // 2. Realistic Meteor Spawn Cadence (Random Poisson timing)
-      nextMeteorDelay -= dt;
-      if (nextMeteorDelay <= 0) {
-        if (meteors.length < 3) {
+      // 2. Spawn shooting stars on natural astronomical cadence
+      nextMeteorTimer -= dt;
+      if (nextMeteorTimer <= 0) {
+        if (meteors.length < 2) {
           spawnMeteor();
-          // Occasional double meteor shower pair
-          if (Math.random() < 0.2) {
-            setTimeout(() => {
-              if (meteors.length < 3) spawnMeteor();
-            }, 250);
-          }
         }
-        nextMeteorDelay = 3.5 + Math.random() * 5.5; // Next shooting star in 3.5 - 9 seconds
+        nextMeteorTimer = 4.0 + Math.random() * 4.5; // Next star in 4 - 8.5 seconds
       }
 
-      // 3. Render and update meteors with authentic atmospheric physics
+      // 3. Render and update meteors with continuous smooth animation lifecycle
       for (let i = meteors.length - 1; i >= 0; i--) {
         const m = meteors[i];
         m.age += dt;
 
-        // Head advances at hypersonic speed
-        m.x += m.vx * dt;
-        m.y += m.vy * dt;
-
-        // Tail follows as a historical trailing horizon (NOT a static stick)
-        const trailTime = Math.min(m.age, m.trailDuration);
-        const tailX = m.x - m.vx * trailTime;
-        const tailY = m.y - m.vy * trailTime;
-
-        // Natural aerodynamic light curve (rapid ignition -> peak incandescence -> terminal extinction)
-        const progress = m.age / m.duration;
-        let brightness = 1.0;
-
-        if (progress < 0.18) {
-          // Ignition ramp
-          brightness = progress / 0.18;
-        } else if (progress > 0.75) {
-          // Terminal ablation burnout
-          brightness = Math.max(0, (1.0 - progress) / 0.25);
-        }
-
-        // Terminal ablation flare for fireballs
-        if (m.isFireball && Math.abs(m.age - m.flareTime) < 0.055) {
-          brightness = Math.min(1.5, brightness * 1.55);
-          if (!m.flareDone) {
-            m.flareDone = true;
-            // Shed microscopic ablation embers that lag behind in the atmosphere
-            const emberCount = 5 + Math.floor(Math.random() * 5);
-            for (let k = 0; k < emberCount; k++) {
-              const dragFactor = 0.2 + Math.random() * 0.4;
-              m.embers.push({
-                x: m.x,
-                y: m.y,
-                vx: m.vx * dragFactor + (Math.random() - 0.5) * 60,
-                vy: m.vy * dragFactor + (Math.random() - 0.5) * 60,
-                life: 0.18 + Math.random() * 0.22,
-                maxLife: 0.35,
-                size: 0.8 + Math.random() * 1.4,
-              });
-            }
-          }
-        }
-
-        // If meteor burned out and all ember debris has cleared
-        if (m.age >= m.duration && m.embers.length === 0) {
+        if (m.age >= m.totalDuration) {
           meteors.splice(i, 1);
+          continue;
+        }
+
+        // --- CALCULATE HEAD POSITION ---
+        let headX, headY;
+        const isBurning = m.age <= m.burnDuration;
+
+        if (isBurning) {
+          headX = m.startX + m.vx * m.age;
+          headY = m.startY + m.vy * m.age;
+        } else {
+          // Head reached burnout position and extinguished
+          headX = m.startX + m.vx * m.burnDuration;
+          headY = m.startY + m.vy * m.burnDuration;
+        }
+
+        // --- CALCULATE DYNAMIC TRAIL LENGTH (Grows on birth, contracts on death) ---
+        let currentLength = m.maxTrailLength;
+        const birthDuration = 0.22; // Seconds for trail to fully unfurl
+
+        if (m.age < birthDuration) {
+          // Phase 1: Smoothly unfurl from 0 length
+          currentLength = m.maxTrailLength * (m.age / birthDuration);
+        } else if (!isBurning) {
+          // Phase 3: Head has burned out; tail contracts smoothly toward head
+          const fadeProgress = (m.age - m.burnDuration) / m.fadeDuration;
+          currentLength = m.maxTrailLength * Math.max(0, 1.0 - fadeProgress);
+        }
+
+        // Tail coordinate trailing behind head
+        const tailX = headX - Math.cos(m.angle) * currentLength;
+        const tailY = headY - Math.sin(m.angle) * currentLength;
+
+        // --- CALCULATE OPACITY ---
+        let alpha = 1.0;
+        if (m.age < 0.14) {
+          // Fade in gently on ignition
+          alpha = m.age / 0.14;
+        } else if (!isBurning) {
+          // Fade out smoothly to 0 on burnout
+          const fadeProgress = (m.age - m.burnDuration) / m.fadeDuration;
+          alpha = Math.max(0, 1.0 - fadeProgress);
+        }
+
+        if (currentLength < 2 || alpha < 0.01) {
           continue;
         }
 
         ctx.save();
 
-        // If the meteoroid head is still burning
-        if (m.age < m.duration && brightness > 0.01) {
-          // --- PASS 1: Outer Ionized Atmospheric Gas Trail (Soft, diffuse glow) ---
-          const outerGrad = ctx.createLinearGradient(tailX, tailY, m.x, m.y);
-          outerGrad.addColorStop(0.0, 'rgba(0, 0, 0, 0)');
-          outerGrad.addColorStop(0.4, `${m.color === '#ffdd88' ? 'rgba(255, 170, 0, ' : 'rgba(93, 230, 255, '}${(brightness * 0.25).toFixed(3)})`);
-          outerGrad.addColorStop(1.0, `${m.color === '#ffdd88' ? 'rgba(255, 220, 140, ' : 'rgba(180, 240, 255, '}${(brightness * 0.6).toFixed(3)})`);
+        // --- PASS 1: Outer Glowing Atmospheric Plasma Aura ---
+        const outerGrad = ctx.createLinearGradient(tailX, tailY, headX, headY);
+        outerGrad.addColorStop(0.0, 'rgba(0, 0, 0, 0)');
+        outerGrad.addColorStop(0.4, `${m.color === '#ffdd88' ? 'rgba(255, 180, 50, ' : 'rgba(93, 230, 255, '}${(alpha * 0.25).toFixed(3)})`);
+        outerGrad.addColorStop(0.85, `${m.color === '#ffdd88' ? 'rgba(255, 220, 120, ' : 'rgba(180, 240, 255, '}${(alpha * 0.65).toFixed(3)})`);
+        outerGrad.addColorStop(1.0, `rgba(255, 255, 255, ${(alpha * 0.95).toFixed(3)})`);
 
-          ctx.strokeStyle = outerGrad;
-          ctx.lineWidth = m.thickness * 2.8;
-          ctx.lineCap = 'round';
+        ctx.strokeStyle = outerGrad;
+        ctx.lineWidth = m.thickness * 2.5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(tailX, tailY);
+        ctx.lineTo(headX, headY);
+        ctx.stroke();
+
+        // --- PASS 2: Inner Incandescent Pure White Core Ray ---
+        const coreGrad = ctx.createLinearGradient(tailX, tailY, headX, headY);
+        coreGrad.addColorStop(0.0, 'rgba(255, 255, 255, 0)');
+        coreGrad.addColorStop(0.5, `rgba(255, 255, 255, ${(alpha * 0.4).toFixed(3)})`);
+        coreGrad.addColorStop(1.0, `rgba(255, 255, 255, ${(alpha * 0.98).toFixed(3)})`);
+
+        ctx.strokeStyle = coreGrad;
+        ctx.lineWidth = m.thickness * 0.85;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(tailX, tailY);
+        ctx.lineTo(headX, headY);
+        ctx.stroke();
+
+        // --- PASS 3: Brilliant Star Head (Active while head is burning) ---
+        if (isBurning) {
+          // Sharp white core
+          ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
           ctx.beginPath();
-          ctx.moveTo(tailX, tailY);
-          ctx.lineTo(m.x, m.y);
-          ctx.stroke();
-
-          // --- PASS 2: Inner Incandescent White-Hot Core Ray ---
-          const coreGrad = ctx.createLinearGradient(tailX, tailY, m.x, m.y);
-          coreGrad.addColorStop(0.0, 'rgba(255, 255, 255, 0)');
-          coreGrad.addColorStop(0.55, `rgba(255, 255, 255, ${(brightness * 0.45).toFixed(3)})`);
-          coreGrad.addColorStop(1.0, `rgba(255, 255, 255, ${(brightness * 0.98).toFixed(3)})`);
-
-          ctx.strokeStyle = coreGrad;
-          ctx.lineWidth = m.thickness * 0.9;
-          ctx.lineCap = 'round';
-          ctx.beginPath();
-          ctx.moveTo(tailX, tailY);
-          ctx.lineTo(m.x, m.y);
-          ctx.stroke();
-
-          // --- PASS 3: Brilliant Hypersonic Compression Head Flare ---
-          ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1.0, brightness).toFixed(3)})`;
-          ctx.beginPath();
-          ctx.arc(m.x, m.y, m.thickness * 1.5, 0, Math.PI * 2);
+          ctx.arc(headX, headY, m.thickness * 1.35, 0, Math.PI * 2);
           ctx.fill();
 
-          // Outer shockwave bloom halo
-          ctx.fillStyle = `${m.color === '#ffdd88' ? 'rgba(255, 200, 100, ' : 'rgba(93, 230, 255, '}${(brightness * 0.35).toFixed(3)})`;
+          // Soft radiant bloom halo
+          ctx.fillStyle = `${m.color === '#ffdd88' ? 'rgba(255, 200, 100, ' : 'rgba(93, 230, 255, '}${(alpha * 0.38).toFixed(3)})`;
           ctx.beginPath();
-          ctx.arc(m.x, m.y, m.thickness * 3.4, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // --- PASS 4: Lingering Micro-Ember Sparks (Atmospheric Drag) ---
-        for (let j = m.embers.length - 1; j >= 0; j--) {
-          const emb = m.embers[j];
-          emb.x += emb.vx * dt;
-          emb.y += emb.vy * dt;
-          // Heavy air resistance decelerates debris
-          emb.vx *= 0.91;
-          emb.vy *= 0.91;
-          emb.life -= dt;
-
-          if (emb.life <= 0) {
-            m.embers.splice(j, 1);
-            continue;
-          }
-
-          const emberAlpha = Math.max(0, emb.life / emb.maxLife);
-          ctx.fillStyle = `rgba(255, 255, 255, ${(emberAlpha * 0.9).toFixed(3)})`;
-          ctx.beginPath();
-          ctx.arc(emb.x, emb.y, emb.size, 0, Math.PI * 2);
+          ctx.arc(headX, headY, m.thickness * 3.2, 0, Math.PI * 2);
           ctx.fill();
         }
 

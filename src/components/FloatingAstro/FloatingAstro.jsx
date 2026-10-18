@@ -1,30 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCosmicAudio } from '../../hooks/useCosmicAudio';
 
-/**
- * FloatingAstro Component
- * Autonomous Zero-G Roaming Astronaut Tour Guide.
- * 
- * Features:
- * 1. Autonomous Random Roaming:
- *    - Roams dynamically across viewport margins in zero gravity using smooth velocity steering.
- *    - Tilts realistically with movement vectors, bursts thruster ion jets when accelerating.
- *    - Microgravity sinusoidal bobbing when cruising/lingering.
- *    - Fully draggable: user can drag Astronaut Kian anywhere; resumes autonomous roaming when released.
- * 2. Intelligent Portfolio Tour Guide:
- *    - Dynamically detects the exact sector the user is currently viewing:
- *      • Sector 00: Singularity (Relativistic Black Hole & Disintegrating Name)
- *      • Sector 0.5: Orbital Defense (Modern Space Dogfight Interceptor Arcade)
- *      • Sector 01: Galaxy (Academic Formations & Andromeda Simulation)
- *      • Sector 02: Supernova (Technical Skills & Neutron Star)
- *      • Sector 03: Contact (Subspace Transceiver & Direct Channels)
- *      • Footer (Mission Brief & Sector Coordinates)
- *    - Holographic speech bubble pops with celestial chime and updates with lively explanations.
- *    - Interactive: Click or press Enter for a 360° somersault flip, thruster flare, and extra developer insights!
- *    - Minimizable / dockable to corner if desired.
- */
-
-// Sector Explanations & Contextual Insights
+// Sector Explanations & Contextual Insights (Zero emojis, purely aerospace telemetry)
 const SECTOR_GUIDES = {
   intro: {
     sector: 'SINGULARITY',
@@ -77,6 +54,25 @@ const SECTOR_GUIDES = {
   },
 };
 
+/**
+ * FloatingAstro Component
+ * Refined Aerospace Zero-G Roaming Companion & Telemetry Tour Guide.
+ * 
+ * Features:
+ * 1. High-Fidelity Aerospace EVA Suit & Twin-Nozzle Vector Jetpack:
+ *    - Dual-nozzle gimbal ion thrusters with supersonic Mach diamonds & dynamic plasma plume.
+ *    - Lateral RCS (Reaction Control System) cold-gas steering micro-jets firing during banking maneuvers.
+ *    - High-pressure cryogenic propellant cylinders with chrome specular reflections.
+ *    - Golden visor with dual-layer relativistic curve sheen & horizon reflection glint.
+ *    - Telemetry console with pulsing emerald & cyan OLED status nodes.
+ * 2. Unpredictable Random Perimeter Roaming:
+ *    - Free, organic zero-g drifting across all outer perimeter zones (Left, Right, Top, Bottom, Corners).
+ *    - Strict Middle Repulsion Barrier: Dynamically prevents entering or blocking the central reading area.
+ *    - Microgravity velocity banking and inertia damping.
+ *    - Draggable anywhere; auto-repels from center back into perimeter track when released.
+ * 3. Minimalist Aerospace HUD Capsule:
+ *    - Smart adaptive placement (inverts below if near top viewport edge, flips horizontally to stay in bounds).
+ */
 export function FloatingAstro() {
   const [isVisible, setIsVisible] = useState(true);
   const [currentSection, setCurrentSection] = useState('intro');
@@ -90,6 +86,7 @@ export function FloatingAstro() {
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [tilt, setTilt] = useState(0);
   const [isThrusting, setIsThrusting] = useState(false);
+  const [rcsFire, setRcsFire] = useState({ left: false, right: false });
 
   const physicsRef = useRef({
     x: 0,
@@ -98,14 +95,12 @@ export function FloatingAstro() {
     vy: 0,
     targetX: 0,
     targetY: 0,
-    currentSide: 'RIGHT', // 'RIGHT' or 'LEFT'
-    verticalRunCount: 0,
+    currentZone: 'RIGHT', // 'LEFT', 'RIGHT', 'TOP', 'BOTTOM'
     waypointQueue: [],
     roamTimer: 0,
-    pauseTimer: 0,
+    thrustPulse: 0,
     userHasDragged: false,
     dragStart: { mouseX: 0, mouseY: 0, startX: 0, startY: 0 },
-    lastScrollY: 0,
   });
 
   const containerRef = useRef(null);
@@ -114,13 +109,15 @@ export function FloatingAstro() {
   // 1. Initial Position (Comfortable perimeter margin on mount)
   useEffect(() => {
     const initPos = () => {
-      const defaultX = Math.max(20, window.innerWidth - 145);
-      const defaultY = Math.max(120, window.innerHeight - 240);
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const defaultX = Math.max(30, w - 135);
+      const defaultY = Math.max(120, h - 220);
       physicsRef.current.x = defaultX;
       physicsRef.current.y = defaultY;
       physicsRef.current.targetX = defaultX;
       physicsRef.current.targetY = defaultY;
-      physicsRef.current.currentSide = 'RIGHT';
+      physicsRef.current.currentZone = 'RIGHT';
       setPos({ x: defaultX, y: defaultY });
     };
 
@@ -175,109 +172,154 @@ export function FloatingAstro() {
         setIsPopping(true);
         setTimeout(() => setIsPopping(false), 500);
       }
-    }, 7000);
+    }, 7500);
 
     return () => clearInterval(interval);
   }, [currentSection, isDragging]);
 
-  // 4. Autonomous Zero-G Perimeter Roaming Engine (Strictly Sides + Up/Down)
+  // 4. Autonomous Zero-G Perimeter Roaming Engine (Except the Middle Part)
   useEffect(() => {
     let animId = null;
     let lastTime = performance.now();
 
-    // Helper: Pick a new waypoint restricted strictly to the side gutters, cruising up/down
-    const pickNewWaypoint = () => {
-      const p = physicsRef.current;
+    // Helper: Compute dynamic perimeter zones and corners
+    const getPerimeterMetrics = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
+      const marginSide = Math.max(30, Math.min(65, w * 0.04));
+      const marginTop = 85;
+      const marginBottom = Math.max(90, h - 135);
+      const rightX = w - marginSide - 75;
 
-      // A. Process queued perimeter corner waypoints if transitioning across sides
+      return {
+        w,
+        h,
+        marginSide,
+        marginTop,
+        marginBottom,
+        rightX,
+        // Corners for safe outer transit
+        cTL: { x: marginSide + 10, y: marginTop },
+        cTR: { x: rightX, y: marginTop },
+        cBR: { x: rightX, y: marginBottom },
+        cBL: { x: marginSide + 10, y: marginBottom },
+      };
+    };
+
+    // Helper: Pick a random destination anywhere along the perimeter track
+    const pickNewWaypoint = () => {
+      const p = physicsRef.current;
+      const { w, h, marginSide, marginTop, marginBottom, rightX, cTL, cTR, cBR, cBL } = getPerimeterMetrics();
+
+      // If queued transitional waypoints exist, execute next step
       if (p.waypointQueue && p.waypointQueue.length > 0) {
         const nextWp = p.waypointQueue.shift();
         p.targetX = nextWp.x;
         p.targetY = nextWp.y;
-        p.roamTimer = nextWp.duration || 3.5;
+        p.roamTimer = nextWp.duration || 3.0;
         return;
       }
 
-      p.verticalRunCount = (p.verticalRunCount || 0) + 1;
+      // Available perimeter zones
+      const zones = ['LEFT', 'RIGHT', 'TOP', 'BOTTOM'];
+      // Filter to encourage organic roaming (prefer moving to a different zone 75% of the time)
+      const shouldSwitchZone = Math.random() < 0.78;
+      const targetZone = shouldSwitchZone
+        ? zones.filter((z) => z !== p.currentZone)[Math.floor(Math.random() * (zones.length - 1))]
+        : p.currentZone;
 
-      // B. After 3-4 vertical runs on one side, execute a safe perimeter transition to opposite side
-      const shouldSwitchSide = p.verticalRunCount >= 4;
+      p.currentZone = targetZone;
 
-      if (shouldSwitchSide) {
-        p.verticalRunCount = 0;
-        const targetSide = p.currentSide === 'RIGHT' ? 'LEFT' : 'RIGHT';
-        p.currentSide = targetSide;
+      // Coordinate generators for each zone
+      const randomLeftPoint = () => ({
+        x: marginSide + Math.random() * 25,
+        y: marginTop + 35 + Math.random() * (marginBottom - marginTop - 70),
+      });
 
-        // Choose between TOP perimeter corridor (y ~ 85) or BOTTOM perimeter corridor (y ~ h - 110)
-        const useTopPerimeter = p.y < h * 0.48;
+      const randomRightPoint = () => ({
+        x: rightX + Math.random() * 25,
+        y: marginTop + 35 + Math.random() * (marginBottom - marginTop - 70),
+      });
 
-        if (targetSide === 'LEFT') {
-          // Transit from RIGHT to LEFT along top or bottom extreme edge
-          if (useTopPerimeter) {
-            p.waypointQueue = [
-              { x: 55, y: 85, duration: 3.5 }, // Top-Left corner
-              { x: 45 + Math.random() * 25, y: 160 + Math.random() * 120, duration: 6.0 }, // Left side upper corridor
-            ];
-            p.targetX = w - 100;
-            p.targetY = 85;
-            p.roamTimer = 3.0;
+      const randomTopPoint = () => ({
+        x: marginSide + 40 + Math.random() * (rightX - marginSide - 80),
+        y: marginTop + Math.random() * 20,
+      });
+
+      const randomBottomPoint = () => ({
+        x: marginSide + 40 + Math.random() * (rightX - marginSide - 80),
+        y: marginBottom + Math.random() * 20,
+      });
+
+      // Route between zones via perimeter corners so we never intersect the middle
+      if (targetZone === 'LEFT') {
+        const dest = randomLeftPoint();
+        if (p.x > w * 0.5) {
+          // Coming from right side: route via top or bottom extreme edge
+          if (p.y < h * 0.5) {
+            p.waypointQueue = [cTR, { x: w * 0.5, y: marginTop }, cTL, dest];
           } else {
-            p.waypointQueue = [
-              { x: 55, y: h - 110, duration: 3.5 }, // Bottom-Left corner
-              { x: 45 + Math.random() * 25, y: h - 260 - Math.random() * 120, duration: 6.0 }, // Left side lower corridor
-            ];
-            p.targetX = w - 100;
-            p.targetY = h - 110;
-            p.roamTimer = 3.0;
+            p.waypointQueue = [cBR, { x: w * 0.5, y: marginBottom }, cBL, dest];
           }
+          const first = p.waypointQueue.shift();
+          p.targetX = first.x;
+          p.targetY = first.y;
         } else {
-          // Transit from LEFT to RIGHT along top or bottom extreme edge
-          if (useTopPerimeter) {
-            p.waypointQueue = [
-              { x: w - 100, y: 85, duration: 3.5 }, // Top-Right corner
-              { x: w - 120 - Math.random() * 25, y: 160 + Math.random() * 120, duration: 6.0 }, // Right side upper corridor
-            ];
-            p.targetX = 55;
-            p.targetY = 85;
-            p.roamTimer = 3.0;
-          } else {
-            p.waypointQueue = [
-              { x: w - 100, y: h - 110, duration: 3.5 }, // Bottom-Right corner
-              { x: w - 120 - Math.random() * 25, y: h - 260 - Math.random() * 120, duration: 6.0 }, // Right side lower corridor
-            ];
-            p.targetX = 55;
-            p.targetY = h - 110;
-            p.roamTimer = 3.0;
-          }
+          p.targetX = dest.x;
+          p.targetY = dest.y;
         }
-        return;
-      }
-
-      // C. Normal vertical travel up and down along the current side
-      if (p.currentSide === 'LEFT') {
-        p.targetX = 35 + Math.random() * 35; // x in [35, 70]
-        if (p.y < h * 0.45) {
-          // Cruise DOWNwards along left side
-          p.targetY = Math.min(h - 140, h * 0.55 + Math.random() * (h * 0.30));
+      } else if (targetZone === 'RIGHT') {
+        const dest = randomRightPoint();
+        if (p.x < w * 0.5) {
+          // Coming from left side: route via top or bottom extreme edge
+          if (p.y < h * 0.5) {
+            p.waypointQueue = [cTL, { x: w * 0.5, y: marginTop }, cTR, dest];
+          } else {
+            p.waypointQueue = [cBL, { x: w * 0.5, y: marginBottom }, cBR, dest];
+          }
+          const first = p.waypointQueue.shift();
+          p.targetX = first.x;
+          p.targetY = first.y;
         } else {
-          // Cruise UPwards along left side
-          p.targetY = Math.max(110, 110 + Math.random() * (h * 0.32));
+          p.targetX = dest.x;
+          p.targetY = dest.y;
+        }
+      } else if (targetZone === 'TOP') {
+        const dest = randomTopPoint();
+        if (p.y > h * 0.5) {
+          // Coming from bottom: route via left or right side
+          if (p.x < w * 0.5) {
+            p.waypointQueue = [cBL, { x: marginSide, y: h * 0.5 }, cTL, dest];
+          } else {
+            p.waypointQueue = [cBR, { x: rightX, y: h * 0.5 }, cTR, dest];
+          }
+          const first = p.waypointQueue.shift();
+          p.targetX = first.x;
+          p.targetY = first.y;
+        } else {
+          p.targetX = dest.x;
+          p.targetY = dest.y;
         }
       } else {
-        // Right side
-        p.targetX = Math.max(20, w - 145 + Math.random() * 50); // x in [w - 145, w - 95]
-        if (p.y < h * 0.45) {
-          // Cruise DOWNwards along right side
-          p.targetY = Math.min(h - 140, h * 0.55 + Math.random() * (h * 0.30));
+        // BOTTOM
+        const dest = randomBottomPoint();
+        if (p.y < h * 0.5) {
+          // Coming from top: route via left or right side
+          if (p.x < w * 0.5) {
+            p.waypointQueue = [cTL, { x: marginSide, y: h * 0.5 }, cBL, dest];
+          } else {
+            p.waypointQueue = [cTR, { x: rightX, y: h * 0.5 }, cBR, dest];
+          }
+          const first = p.waypointQueue.shift();
+          p.targetX = first.x;
+          p.targetY = first.y;
         } else {
-          // Cruise UPwards along right side
-          p.targetY = Math.max(110, 110 + Math.random() * (h * 0.32));
+          p.targetX = dest.x;
+          p.targetY = dest.y;
         }
       }
 
-      p.roamTimer = 5.5 + Math.random() * 4.5; // Stay/travel for 5.5 to 10 seconds
+      p.roamTimer = 4.5 + Math.random() * 4.5;
     };
 
     pickNewWaypoint();
@@ -287,32 +329,54 @@ export function FloatingAstro() {
       lastTime = time;
 
       const p = physicsRef.current;
-      const w = window.innerWidth;
-      const h = window.innerHeight;
+      const { w, h, marginSide, marginTop, marginBottom, rightX } = getPerimeterMetrics();
 
       if (!isDragging && !isDocked) {
         p.roamTimer -= dt;
+        p.thrustPulse = (p.thrustPulse || 0) + dt * 10;
+
         if (p.roamTimer <= 0) {
           pickNewWaypoint();
         }
 
-        // Active Repulsion Barrier: Strictly prevent entering central content zone
-        const midLeft = Math.max(90, w * 0.12);
-        const midRight = Math.min(w - 150, w * 0.88);
-        const topPerimeterY = 105;
-        const bottomPerimeterY = h - 125;
+        // =================================================================
+        // ACTIVE MIDDLE REPULSION BARRIER: STRICTLY PREVENTS ENTERING CENTER
+        // =================================================================
+        const midLeft = Math.max(75, w * 0.12);
+        const midRight = Math.min(w - 140, w * 0.88);
+        const midTop = 115;
+        const midBottom = h - 140;
 
-        // If inside central forbidden zone (and not safely in top or bottom margin)
-        if (p.y > topPerimeterY && p.y < bottomPerimeterY && p.x > midLeft && p.x < midRight) {
-          if (p.x < w / 2) {
-            p.vx -= 150 * dt; // Repel towards left side
-            p.currentSide = 'LEFT';
-            p.targetX = 45;
+        // If coordinates ever breach the central content zone
+        if (p.x > midLeft && p.x < midRight && p.y > midTop && p.y < midBottom) {
+          // Calculate distance to all 4 outer escape corridors
+          const distToLeft = p.x - midLeft;
+          const distToRight = midRight - p.x;
+          const distToTop = p.y - midTop;
+          const distToBottom = midBottom - p.y;
+          const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
+
+          // Forcefully repel outward to the closest perimeter edge
+          if (minDist === distToLeft) {
+            p.vx -= 240 * dt;
+            p.targetX = marginSide + 10;
+            p.currentZone = 'LEFT';
+          } else if (minDist === distToRight) {
+            p.vx += 240 * dt;
+            p.targetX = rightX;
+            p.currentZone = 'RIGHT';
+          } else if (minDist === distToTop) {
+            p.vy -= 240 * dt;
+            p.targetY = marginTop;
+            p.currentZone = 'TOP';
           } else {
-            p.vx += 150 * dt; // Repel towards right side
-            p.currentSide = 'RIGHT';
-            p.targetX = w - 120;
+            p.vy += 240 * dt;
+            p.targetY = marginBottom;
+            p.currentZone = 'BOTTOM';
           }
+
+          p.waypointQueue = [];
+          p.roamTimer = 3.0;
         }
 
         // Vector to target waypoint
@@ -320,36 +384,46 @@ export function FloatingAstro() {
         const dy = p.targetY - p.y;
         const dist = Math.hypot(dx, dy);
 
-        if (dist > 18) {
-          // Accelerate gently towards waypoint
-          const moveSpeed = Math.min(55, dist * 0.7);
+        if (dist > 16) {
+          // Accelerate gently towards waypoint with zero-g momentum
+          const moveSpeed = Math.min(60, dist * 0.75);
           const targetVx = (dx / dist) * moveSpeed;
           const targetVy = (dy / dist) * moveSpeed;
 
-          p.vx += (targetVx - p.vx) * Math.min(1.0, 1.8 * dt);
-          p.vy += (targetVy - p.vy) * Math.min(1.0, 1.8 * dt);
+          p.vx += (targetVx - p.vx) * Math.min(1.0, 2.0 * dt);
+          p.vy += (targetVy - p.vy) * Math.min(1.0, 2.0 * dt);
 
           p.x += p.vx * dt;
           p.y += p.vy * dt;
 
-          setIsThrusting(Math.hypot(p.vx, p.vy) > 16);
-          // Banking tilt proportional to horizontal velocity
-          setTilt(Math.max(-18, Math.min(18, (p.vx / 45) * 14)));
+          const currentSpeed = Math.hypot(p.vx, p.vy);
+          setIsThrusting(currentSpeed > 14);
+
+          // Banking tilt proportional to velocity vector
+          const targetTilt = Math.max(-20, Math.min(20, (p.vx / 45) * 16));
+          setTilt(targetTilt);
+
+          // Dynamic RCS micro-bursts when banking
+          setRcsFire({
+            left: p.vx > 18,
+            right: p.vx < -18,
+          });
         } else {
           // Zero-G idle floating bob
-          p.vx *= 0.94;
-          p.vy *= 0.94;
+          p.vx *= 0.92;
+          p.vy *= 0.92;
           const idleX = Math.sin(time * 0.0012) * 0.35;
           const idleY = Math.cos(time * 0.0016) * 0.45;
           p.x += idleX;
           p.y += idleY;
           setIsThrusting(false);
-          setTilt(Math.sin(time * 0.0014) * 4);
+          setTilt(Math.sin(time * 0.0014) * 3);
+          setRcsFire({ left: false, right: false });
         }
 
-        // Clamp inside screen bounds
-        p.x = Math.max(15, Math.min(w - 120, p.x));
-        p.y = Math.max(80, Math.min(h - 145, p.y));
+        // Clamp inside physical viewport boundaries
+        p.x = Math.max(15, Math.min(w - 110, p.x));
+        p.y = Math.max(75, Math.min(h - 135, p.y));
 
         setPos({ x: Math.round(p.x), y: Math.round(p.y) });
       }
@@ -369,7 +443,6 @@ export function FloatingAstro() {
     setIsBoosting(true);
     if (typeof playChime === 'function') playChime();
 
-    // Advance message immediately
     const guide = SECTOR_GUIDES[currentSection] || SECTOR_GUIDES.intro;
     setMsgIndex((prev) => (prev + 1) % guide.messages.length);
     setIsPopping(true);
@@ -408,8 +481,8 @@ export function FloatingAstro() {
     const deltaX = e.clientX - p.dragStart.mouseX;
     const deltaY = e.clientY - p.dragStart.mouseY;
 
-    p.x = Math.max(15, Math.min(window.innerWidth - 120, p.dragStart.startX + deltaX));
-    p.y = Math.max(80, Math.min(window.innerHeight - 150, p.dragStart.startY + deltaY));
+    p.x = Math.max(15, Math.min(window.innerWidth - 110, p.dragStart.startX + deltaX));
+    p.y = Math.max(75, Math.min(window.innerHeight - 135, p.dragStart.startY + deltaY));
     p.targetX = p.x;
     p.targetY = p.y;
     setPos({ x: p.x, y: p.y });
@@ -422,17 +495,29 @@ export function FloatingAstro() {
 
       const p = physicsRef.current;
       const w = window.innerWidth;
-      // If user released in the middle, steer smoothly toward nearest side
-      if (p.x < w / 2) {
-        p.currentSide = 'LEFT';
-        p.targetX = 45;
+      const h = window.innerHeight;
+
+      // If user released anywhere in the central forbidden zone, steer immediately to nearest edge
+      const midLeft = Math.max(75, w * 0.12);
+      const midRight = Math.min(w - 140, w * 0.88);
+      const midTop = 115;
+      const midBottom = h - 140;
+
+      if (p.x > midLeft && p.x < midRight && p.y > midTop && p.y < midBottom) {
+        if (p.x < w / 2) {
+          p.currentZone = 'LEFT';
+          p.targetX = 45;
+        } else {
+          p.currentZone = 'RIGHT';
+          p.targetX = w - 120;
+        }
       } else {
-        p.currentSide = 'RIGHT';
-        p.targetX = w - 120;
+        p.targetX = p.x;
       }
+
       p.targetY = p.y;
       p.waypointQueue = [];
-      p.roamTimer = 4.0;
+      p.roamTimer = 3.5;
     }
   };
 
@@ -444,14 +529,15 @@ export function FloatingAstro() {
   const activeGuide = SECTOR_GUIDES[currentSection] || SECTOR_GUIDES.intro;
   const currentMsg = activeGuide.messages[msgIndex % activeGuide.messages.length];
   const isRightSide = pos.x > (typeof window !== 'undefined' ? window.innerWidth / 2 : 500);
+  const isNearTop = pos.y < 165;
 
   return (
     <aside
       ref={containerRef}
       id="floating-astronaut-companion"
-      className={`floating-astronaut-companion fixed z-40 transition-opacity duration-700 select-none ${
+      className={`fixed z-40 transition-opacity duration-700 select-none ${
         isVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-      } ${isDragging ? 'is-dragging' : ''} ${isBoosting ? 'wander-boost' : ''}`}
+      } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} ${isBoosting ? 'wander-boost' : ''}`}
       style={{
         left: `${pos.x}px`,
         top: `${pos.y}px`,
@@ -461,18 +547,20 @@ export function FloatingAstro() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      aria-label="Astronaut Kian Cosmic Tour Guide"
+      aria-label="Astronaut Kian Cosmic Tour Companion"
     >
-      {/* Overhead Holographic Tour Guide Speech Bubble */}
+      {/* Overhead Minimalist Aerospace Telemetry HUD Speech Capsule */}
       {!isDocked && (
         <div
           id="floating-speech-bubble"
-          className={`floating-speech-bubble max-w-[290px] sm:max-w-[340px] flex-col !items-start p-3.5 rounded-2xl bg-[#060814]/90 border border-white/10 backdrop-blur-2xl shadow-[0_16px_40px_rgba(0,0,0,0.85)] ring-1 ring-white/5 ${
-            isRightSide ? 'bubble-align-right' : 'bubble-align-left'
-          } ${isPopping ? 'bubble-pop' : ''}`}
+          className={`absolute max-w-[280px] sm:max-w-[320px] flex flex-col items-start p-3.5 rounded-2xl bg-[#060814]/90 border border-white/10 backdrop-blur-2xl shadow-[0_16px_40px_rgba(0,0,0,0.85)] ring-1 ring-white/5 transition-all duration-300 z-50 ${
+            isNearTop ? 'top-[105%] mt-2' : 'bottom-[105%] mb-2'
+          } ${isRightSide ? 'right-0' : 'left-0'} ${
+            isPopping ? 'scale-105' : 'scale-100'
+          }`}
           aria-live="polite"
         >
-          {/* Sector Badge Tag */}
+          {/* Top Telemetry Status Header */}
           <div className="flex items-center justify-between w-full pb-2 mb-2 border-b border-white/10 text-[10px] font-mono tracking-[0.2em] text-cyan-400 font-medium">
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,255,204,0.8)]" />
@@ -480,7 +568,7 @@ export function FloatingAstro() {
             </span>
             <button
               type="button"
-              className="w-4 h-4 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors text-xs"
+              className="w-4 h-4 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors text-xs cursor-pointer"
               onClick={toggleDock}
               title="Dock companion"
               aria-label="Dock companion"
@@ -489,18 +577,18 @@ export function FloatingAstro() {
             </button>
           </div>
 
-          {/* Contextual Tour Explanation */}
-          <p className="bubble-text text-left font-outfit text-xs text-white/90 leading-relaxed pt-0.5 whitespace-normal">
+          {/* Contextual Guidance Text */}
+          <p className="text-left font-outfit text-xs text-white/90 leading-relaxed pt-0.5 whitespace-normal">
             {currentMsg}
           </p>
         </div>
       )}
 
-      {/* Docked pill trigger if user minimized */}
+      {/* Docked Pill Mode if user minimized */}
       {isDocked && (
         <button
           type="button"
-          className="docked-astro-pill px-3 py-1.5 rounded-full bg-[#060814]/90 border border-white/10 backdrop-blur-xl text-[11px] font-mono tracking-widest text-white/80 flex items-center gap-2 hover:border-cyan-400/40 hover:text-white transition-all shadow-[0_8px_25px_rgba(0,0,0,0.8)]"
+          className="px-3.5 py-1.5 rounded-full bg-[#060814]/90 border border-white/10 backdrop-blur-xl text-[11px] font-mono tracking-widest text-white/80 flex items-center gap-2 hover:border-cyan-400/40 hover:text-white transition-all shadow-[0_8px_25px_rgba(0,0,0,0.8)] cursor-pointer"
           onClick={toggleDock}
           title="Resume Tour"
           aria-label="Resume Tour"
@@ -510,81 +598,89 @@ export function FloatingAstro() {
         </button>
       )}
 
-      {/* Interactive Avatar Container with Dynamic Tilt & Banking */}
+      {/* Refined Aerospace EVA Astronaut Body & Vector Jetpack */}
       <div
-        className="floating-astro-body cursor-grab active:cursor-grabbing transition-transform duration-200"
+        className="floating-astro-body transition-transform duration-200"
         style={{ transform: `rotate(${tilt}deg)` }}
         onClick={handleAstroClick}
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="button"
-        aria-label="Astronaut Kian - Click to talk & flip, drag to move"
-        title="Click to talk & flip • Drag to reposition in zero-g!"
+        aria-label="Astronaut Kian - Click to talk & flip, drag to reposition"
+        title="Click to interact • Drag to reposition in zero-g"
       >
         <svg
-          className="floating-astro-svg w-[95px] h-[95px] sm:w-[115px] sm:h-[115px]"
-          viewBox="0 0 80 80"
+          className="w-[100px] h-[100px] sm:w-[120px] sm:h-[120px] filter drop-shadow-[0_12px_28px_rgba(0,0,0,0.7)] drop-shadow-[0_0_15px_rgba(0,255,204,0.3)]"
+          viewBox="0 0 100 100"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
         >
           <defs>
-            {/* Visor Gold Plasma Gradient */}
-            <linearGradient id="flVisorGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#fff5aa" />
-              <stop offset="25%" stopColor="#ffd700" />
-              <stop offset="55%" stopColor="#ff9900" />
-              <stop offset="85%" stopColor="#7a3e00" />
-              <stop offset="100%" stopColor="#1d1135" />
+            {/* 1. Visor Dual-Layer Relativistic Gold Shield Gradient */}
+            <linearGradient id="astroVisorGold" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#fff8cc" />
+              <stop offset="25%" stopColor="#ffc700" />
+              <stop offset="60%" stopColor="#e08500" />
+              <stop offset="85%" stopColor="#7a3b00" />
+              <stop offset="100%" stopColor="#1a0e2e" />
             </linearGradient>
 
-            {/* Helmet 3D Spherical Radial Gradient */}
-            <radialGradient id="flHelmet3dGrad" cx="35%" cy="30%" r="70%">
+            {/* 2. Helmet Spherical Lighting Gradient */}
+            <radialGradient id="astroHelmet3D" cx="35%" cy="30%" r="70%">
               <stop offset="0%" stopColor="#ffffff" />
-              <stop offset="50%" stopColor="#f0f5fc" />
-              <stop offset="85%" stopColor="#c5d5ea" />
-              <stop offset="100%" stopColor="#8ba2c4" />
+              <stop offset="45%" stopColor="#edf3fa" />
+              <stop offset="80%" stopColor="#c2d3ea" />
+              <stop offset="100%" stopColor="#7e96b8" />
             </radialGradient>
 
-            {/* Torso 3D Volume Gradient */}
-            <linearGradient id="flTorso3dGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#d4e2f5" />
-              <stop offset="35%" stopColor="#ffffff" />
-              <stop offset="80%" stopColor="#edf3fc" />
-              <stop offset="100%" stopColor="#b8cde8" />
+            {/* 3. Jetpack Carbon-Titanium Composite Chassis */}
+            <linearGradient id="mmuChassisGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#252d42" />
+              <stop offset="50%" stopColor="#171c2b" />
+              <stop offset="100%" stopColor="#0b0e18" />
             </linearGradient>
 
-            {/* Metallic Oxygen Cylinder Gradient */}
-            <linearGradient id="flTank3dGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#465472" />
-              <stop offset="40%" stopColor="#a8bddb" />
-              <stop offset="70%" stopColor="#657b9f" />
-              <stop offset="100%" stopColor="#2d374d" />
+            {/* 4. Propellant Metallic Cryo-Tanks */}
+            <linearGradient id="cryoTankGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#455470" />
+              <stop offset="35%" stopColor="#9db4d4" />
+              <stop offset="70%" stopColor="#5a6f91" />
+              <stop offset="100%" stopColor="#222b3d" />
             </linearGradient>
 
-            {/* Life Support Backpack 3D Depth Gradient */}
-            <linearGradient id="flBackpack3dGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#2b3350" />
-              <stop offset="50%" stopColor="#1e2238" />
-              <stop offset="100%" stopColor="#111526" />
+            {/* 5. Titanium Nozzle Gradient */}
+            <linearGradient id="nozzleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#1a2233" />
+              <stop offset="50%" stopColor="#4e6285" />
+              <stop offset="100%" stopColor="#1a2233" />
             </linearGradient>
 
-            {/* Space Suit Limbs Gradient */}
-            <linearGradient id="flLegs3dGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#c7daf0" />
-              <stop offset="45%" stopColor="#f2f7fd" />
-              <stop offset="100%" stopColor="#a8c1e2" />
-            </linearGradient>
-
-            {/* Ion Jetpack Thruster Gradient */}
-            <linearGradient id="flThrusterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            {/* 6. Ion Plasma Flame Outer Envelope */}
+            <linearGradient id="ionFlameOuter" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#00ffcc" stopOpacity="0.95" />
-              <stop offset="40%" stopColor="#5de6ff" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#5de6ff" stopOpacity="0" />
+              <stop offset="35%" stopColor="#38bdf8" stopOpacity="0.85" />
+              <stop offset="75%" stopColor="#818cf8" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
             </linearGradient>
 
-            {/* Glowing Beacon Blur Filter */}
-            <filter id="flBeaconGlow" x="-50%" y="-50%" width="200%" height="200%">
+            {/* 7. Ion Core Electric Center Flame */}
+            <linearGradient id="ionFlameCore" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+              <stop offset="40%" stopColor="#a5f3fc" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="#00ffcc" stopOpacity="0" />
+            </linearGradient>
+
+            {/* 8. Spacesuit Torso & Limbs */}
+            <linearGradient id="suitFabricGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#d5e3f5" />
+              <stop offset="40%" stopColor="#ffffff" />
+              <stop offset="80%" stopColor="#e2ecfa" />
+              <stop offset="100%" stopColor="#adc3e0" />
+            </linearGradient>
+
+            {/* 9. Beacon Bloom Glow Filter */}
+            <filter id="beaconBloom" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="2.5" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
@@ -593,219 +689,278 @@ export function FloatingAstro() {
             </filter>
           </defs>
 
-          {/* Zero-G Tether Lifeline Trail */}
+          {/* ============================================================== */}
+          {/* LAYER 1: ZERO-G TETHER LIFELINE & PROPULSION WAKE */}
+          {/* ============================================================== */}
           <path
-            d="M 18 42 C 6 48, -4 38, -12 45"
+            d="M 22 55 C 8 62, -6 50, -18 60"
             fill="none"
-            stroke="#5de6ff"
+            stroke="#38bdf8"
             strokeWidth="2.5"
-            strokeDasharray="3 3"
-            opacity="0.85"
-            className="w-tether"
+            strokeDasharray="4 3"
+            opacity="0.8"
           />
 
-          {/* Thruster Ion Jets beneath oxygen cylinders */}
-          <ellipse
-            cx="21"
-            cy="56"
-            rx="3.5"
-            ry={isBoosting || isDragging || isThrusting ? '13' : '6'}
-            fill="url(#flThrusterGrad)"
-            className="w-thruster-jet"
-          />
-          <ellipse
-            cx="59"
-            cy="56"
-            rx="3.5"
-            ry={isBoosting || isDragging || isThrusting ? '13' : '6'}
-            fill="url(#flThrusterGrad)"
-            className="w-thruster-jet"
-          />
-
-          {/* High-Velocity Ejected Ion Sparks */}
-          <g className="w-thruster-sparks">
-            <circle cx="21" cy="65" r="1.5" fill="#5de6ff" className="w-thruster-spark w-spark-1" />
-            <circle cx="21" cy="72" r="1.1" fill="#00ffff" className="w-thruster-spark w-spark-2" />
-            <circle cx="59" cy="65" r="1.5" fill="#5de6ff" className="w-thruster-spark w-spark-3" />
-            <circle cx="59" cy="72" r="1.1" fill="#00ffff" className="w-thruster-spark w-spark-4" />
+          {/* ============================================================== */}
+          {/* LAYER 2: TWIN GIMBAL ION THRUSTER JETS & SUPERSONIC MACH DIAMONDS */}
+          {/* ============================================================== */}
+          {/* Left Engine Vector Exhaust */}
+          <g className="left-engine-exhaust">
+            {/* Outer Cyan Plasma Envelope */}
+            <ellipse
+              cx="26"
+              cy={isBoosting || isDragging || isThrusting ? 82 : 74}
+              rx={isBoosting || isDragging || isThrusting ? 5.5 : 4.0}
+              ry={isBoosting || isDragging || isThrusting ? 18 : 10}
+              fill="url(#ionFlameOuter)"
+            />
+            {/* Inner Electric-White Core Flame */}
+            <ellipse
+              cx="26"
+              cy={isBoosting || isDragging || isThrusting ? 78 : 72}
+              rx="2.2"
+              ry={isBoosting || isDragging || isThrusting ? 11 : 6}
+              fill="url(#ionFlameCore)"
+            />
+            {/* Mach Shock Diamond */}
+            <ellipse cx="26" cy="71" rx="1.5" ry="2" fill="#ffffff" opacity="0.9" />
           </g>
 
-          {/* Backpack / Life Support Unit */}
-          <rect
-            x="23"
-            y="27"
-            width="34"
-            height="30"
-            rx="7"
-            fill="url(#flBackpack3dGrad)"
-            stroke="#7e8fb8"
-            strokeWidth="2"
-          />
-          <circle cx="30" cy="34" r="3" fill="#00ffff" className="w-led-cyan" />
-          <circle cx="50" cy="34" r="3" fill="#ffaa00" className="w-led-gold" />
-          <line x1="28" y1="48" x2="52" y2="48" stroke="#445070" strokeWidth="2.5" />
+          {/* Right Engine Vector Exhaust */}
+          <g className="right-engine-exhaust">
+            {/* Outer Cyan Plasma Envelope */}
+            <ellipse
+              cx="74"
+              cy={isBoosting || isDragging || isThrusting ? 82 : 74}
+              rx={isBoosting || isDragging || isThrusting ? 5.5 : 4.0}
+              ry={isBoosting || isDragging || isThrusting ? 18 : 10}
+              fill="url(#ionFlameOuter)"
+            />
+            {/* Inner Electric-White Core Flame */}
+            <ellipse
+              cx="74"
+              cy={isBoosting || isDragging || isThrusting ? 78 : 72}
+              rx="2.2"
+              ry={isBoosting || isDragging || isThrusting ? 11 : 6}
+              fill="url(#ionFlameCore)"
+            />
+            {/* Mach Shock Diamond */}
+            <ellipse cx="74" cy="71" rx="1.5" ry="2" fill="#ffffff" opacity="0.9" />
+          </g>
 
-          {/* Dual Oxygen Cylinders */}
-          <rect
-            x="18"
-            y="31"
-            width="6"
-            height="22"
-            rx="3"
-            fill="url(#flTank3dGrad)"
-            stroke="#4a597a"
-            strokeWidth="1.2"
-          />
-          <rect
-            x="56"
-            y="31"
-            width="6"
-            height="22"
-            rx="3"
-            fill="url(#flTank3dGrad)"
-            stroke="#4a597a"
-            strokeWidth="1.2"
-          />
+          {/* High-Velocity Ejected Ion Spark Particles */}
+          <g opacity={isThrusting || isBoosting ? 1 : 0.6}>
+            <circle cx="26" cy="88" r="1.5" fill="#38bdf8" className="animate-ping" />
+            <circle cx="74" cy="88" r="1.5" fill="#38bdf8" className="animate-ping" />
+            <circle cx="26" cy="95" r="1.1" fill="#00ffcc" />
+            <circle cx="74" cy="95" r="1.1" fill="#00ffcc" />
+          </g>
 
-          {/* Space Suit Legs */}
+          {/* ============================================================== */}
+          {/* LAYER 3: MANNED MANEUVERING UNIT (MMU) JETPACK CHASSIS & TANKS */}
+          {/* ============================================================== */}
+          {/* Main Composite Backpack Chassis */}
           <rect
-            x="27"
-            y="55"
-            width="10"
-            height="17"
-            rx="5"
-            fill="url(#flLegs3dGrad)"
-            stroke="#465472"
-            strokeWidth="1.8"
-          />
-          <rect
-            x="43"
-            y="55"
-            width="10"
-            height="17"
-            rx="5"
-            fill="url(#flLegs3dGrad)"
-            stroke="#465472"
+            x="28"
+            y="32"
+            width="44"
+            height="36"
+            rx="8"
+            fill="url(#mmuChassisGrad)"
+            stroke="#475569"
             strokeWidth="1.8"
           />
 
-          {/* Pressurized Boots */}
+          {/* Backpack Heatsink Cooling Fins */}
+          <line x1="36" y1="42" x2="64" y2="42" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
+          <line x1="36" y1="47" x2="64" y2="47" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
+          <line x1="36" y1="52" x2="64" y2="52" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
+
+          {/* Dual High-Pressure Cryogenic Propellant Cylinders */}
+          {/* Left Tank */}
           <rect
-            x="25"
-            y="67"
+            x="20"
+            y="34"
+            width="9"
+            height="28"
+            rx="4.5"
+            fill="url(#cryoTankGrad)"
+            stroke="#334155"
+            strokeWidth="1.5"
+          />
+          <line x1="22" y1="36" x2="22" y2="58" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+
+          {/* Right Tank */}
+          <rect
+            x="71"
+            y="34"
+            width="9"
+            height="28"
+            rx="4.5"
+            fill="url(#cryoTankGrad)"
+            stroke="#334155"
+            strokeWidth="1.5"
+          />
+          <line x1="73" y1="36" x2="73" y2="58" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+
+          {/* Bell De Laval Engine Nozzles */}
+          <polygon points="23,62 29,62 31,68 21,68" fill="url(#nozzleGrad)" stroke="#64748b" strokeWidth="1" />
+          <polygon points="71,62 77,62 79,68 69,68" fill="url(#nozzleGrad)" stroke="#64748b" strokeWidth="1" />
+
+          {/* Lateral RCS Cold-Gas Steering Nozzles (Fires when banking) */}
+          <circle cx="18" cy="33" r="2.5" fill="#1e293b" stroke="#64748b" strokeWidth="1" />
+          <circle cx="82" cy="33" r="2.5" fill="#1e293b" stroke="#64748b" strokeWidth="1" />
+
+          {/* Left RCS Plume Burst */}
+          {rcsFire.left && (
+            <ellipse cx="14" cy="33" rx="4.5" ry="2" fill="#38bdf8" opacity="0.9" />
+          )}
+
+          {/* Right RCS Plume Burst */}
+          {rcsFire.right && (
+            <ellipse cx="86" cy="33" rx="4.5" ry="2" fill="#38bdf8" opacity="0.9" />
+          )}
+
+          {/* ============================================================== */}
+          {/* LAYER 4: SPACESUIT LEGS & PRESSURIZED MAGNETIC BOOTS */}
+          {/* ============================================================== */}
+          <rect
+            x="34"
+            y="65"
             width="12"
-            height="6.5"
-            rx="3"
-            fill="#20293d"
-            stroke="#465472"
-            strokeWidth="1.2"
+            height="21"
+            rx="5.5"
+            fill="url(#suitFabricGrad)"
+            stroke="#475569"
+            strokeWidth="1.8"
           />
           <rect
-            x="43"
-            y="67"
+            x="54"
+            y="65"
             width="12"
-            height="6.5"
-            rx="3"
-            fill="#20293d"
-            stroke="#465472"
-            strokeWidth="1.2"
-          />
-
-          {/* Space Suit Torso */}
-          <rect
-            x="26"
-            y="29"
-            width="28"
-            height="29"
-            rx="8.5"
-            fill="url(#flTorso3dGrad)"
-            stroke="#4a597a"
+            height="21"
+            rx="5.5"
+            fill="url(#suitFabricGrad)"
+            stroke="#475569"
             strokeWidth="1.8"
           />
 
-          {/* Chest Computer Pack */}
+          {/* Articulated Knee Pads */}
+          <rect x="35" y="73" width="10" height="4" rx="1.5" fill="#334155" opacity="0.5" />
+          <rect x="55" y="73" width="10" height="4" rx="1.5" fill="#334155" opacity="0.5" />
+
+          {/* Pressurized EVA Boots */}
+          <rect x="32" y="80" width="14" height="7.5" rx="3.5" fill="#1e293b" stroke="#475569" strokeWidth="1.2" />
+          <rect x="54" y="80" width="14" height="7.5" rx="3.5" fill="#1e293b" stroke="#475569" strokeWidth="1.2" />
+
+          {/* ============================================================== */}
+          {/* LAYER 5: SPACESUIT TORSO & TELEMETRY CHEST CONSOLE */}
+          {/* ============================================================== */}
           <rect
             x="32"
-            y="36"
-            width="16"
-            height="12"
-            rx="3.5"
-            fill="#182030"
-            stroke="#334260"
-            strokeWidth="1"
+            y="35"
+            width="36"
+            height="35"
+            rx="10"
+            fill="url(#suitFabricGrad)"
+            stroke="#475569"
+            strokeWidth="2"
           />
-          <circle cx="36" cy="42" r="2" fill="#00ffaa" className="w-led-green" />
-          <circle cx="44" cy="42" r="2" fill="#ff3366" className="w-led-red" />
 
+          {/* Dual Chest Computer Console */}
+          <rect
+            x="40"
+            y="43"
+            width="20"
+            height="14"
+            rx="4"
+            fill="#0f172a"
+            stroke="#334155"
+            strokeWidth="1.2"
+          />
+          {/* Telemetry Status LEDs */}
+          <circle cx="45" cy="50" r="2.2" fill="#10b981" className="animate-pulse" />
+          <circle cx="55" cy="50" r="2.2" fill="#00ffcc" className="animate-pulse" />
+
+          {/* Utility Shoulder Straps */}
+          <path d="M 36 36 L 40 50" stroke="#334155" strokeWidth="1.8" />
+          <path d="M 64 36 L 60 50" stroke="#334155" strokeWidth="1.8" />
+
+          {/* ============================================================== */}
+          {/* LAYER 6: ARTICULATED ARMS & PRESSURIZED GLOVES */}
+          {/* ============================================================== */}
           {/* Left Arm (Zero-g relaxed drift) */}
           <path
-            d="M 26 34 L 14 46 L 18 50 L 28 39 Z"
-            fill="url(#flLegs3dGrad)"
-            stroke="#4a597a"
-            strokeWidth="1.4"
+            d="M 33 42 L 18 54 L 22 59 L 36 48 Z"
+            fill="url(#suitFabricGrad)"
+            stroke="#475569"
+            strokeWidth="1.6"
           />
-          <circle cx="15" cy="48" r="3.8" fill="#20293d" />
+          <circle cx="19" cy="57" r="4.5" fill="#1e293b" />
 
-          {/* Right Arm (Waving friendly greeting in microgravity) */}
+          {/* Right Arm (Zero-g friendly wave) */}
           <g className="w-waving-arm">
             <path
-              d="M 54 34 L 66 24 L 70 28 L 56 39 Z"
-              fill="url(#flLegs3dGrad)"
-              stroke="#4a597a"
-              strokeWidth="1.4"
+              d="M 67 42 L 82 30 L 86 35 L 70 48 Z"
+              fill="url(#suitFabricGrad)"
+              stroke="#475569"
+              strokeWidth="1.6"
             />
-            <circle cx="68" cy="25" r="4.2" fill="#20293d" />
-            <path d="M 68 22 L 73 18 L 75 22 L 71 25" fill="#20293d" />
+            <circle cx="84" cy="31" r="4.8" fill="#1e293b" />
+            <path d="M 84 27 L 89 22 L 91 26 L 87 31" fill="#1e293b" />
           </g>
 
-          {/* Astronaut Helmet Sphere */}
+          {/* ============================================================== */}
+          {/* LAYER 7: 3D SPHERICAL HELMET & RELATIVISTIC GOLD VISOR */}
+          {/* ============================================================== */}
+          {/* Helmet Sphere */}
           <circle
-            cx="40"
-            cy="22"
-            r="16.5"
-            fill="url(#flHelmet3dGrad)"
-            stroke="#4a597a"
+            cx="50"
+            cy="26"
+            r="19"
+            fill="url(#astroHelmet3D)"
+            stroke="#475569"
             strokeWidth="2.5"
           />
 
           {/* Gold Visor Shield */}
           <ellipse
-            cx="40"
-            cy="22"
-            rx="12"
-            ry="9.5"
-            fill="url(#flVisorGoldGrad)"
-            stroke="#c48b26"
-            strokeWidth="1.5"
+            cx="50"
+            cy="26"
+            rx="14"
+            ry="11"
+            fill="url(#astroVisorGold)"
+            stroke="#b45309"
+            strokeWidth="1.6"
           />
 
-          {/* Specular Visor Reflection Glint */}
+          {/* Curvature Reflection Specular Glint */}
           <ellipse
-            cx="36.5"
-            cy="18.5"
-            rx="5.5"
-            ry="3"
+            cx="46"
+            cy="22"
+            rx="6.5"
+            ry="3.5"
             fill="rgba(255, 255, 255, 0.85)"
-            transform="rotate(-15 36.5 18.5)"
+            transform="rotate(-15 46 22)"
           />
 
-          {/* Helmet Comm Antenna & Glowing Red Beacon */}
+          {/* Helmet Antenna & Pulsing Cyan/Ruby Beacon */}
           <line
-            x1="52"
-            y1="14"
-            x2="59"
-            y2="6"
-            stroke="#7e8fb8"
+            x1="64"
+            y1="16"
+            x2="72"
+            y2="7"
+            stroke="#64748b"
             strokeWidth="2.5"
             strokeLinecap="round"
           />
           <circle
-            cx="60.5"
-            cy="5"
-            r="3"
-            fill="#ff0055"
-            filter="url(#flBeaconGlow)"
-            className="w-beacon"
+            cx="73.5"
+            cy="6"
+            r="3.5"
+            fill="#00ffcc"
+            filter="url(#beaconBloom)"
+            className="animate-pulse"
           />
         </svg>
       </div>

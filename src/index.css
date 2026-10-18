@@ -2310,33 +2310,35 @@
   user-select: none;
 }
 
-/* 1. Base letter: 100% solid pure white on lower 50%, smoothly dissolving upwards */
+/* 1. Base letter: solid pure white, with dynamic erosion front descending from top to bottom */
 .dust-letter-base {
   display: inline-block;
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
   font-family: var(--font-display, 'Orbitron', sans-serif);
   font-weight: 900;
+  opacity: var(--letter-opacity, 1);
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.6), 0 4px 18px rgba(0, 0, 0, 0.95);
   -webkit-mask-image: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 1) 48%,
-    rgba(0, 0, 0, 0.78) 64%,
-    rgba(0, 0, 0, 0.22) 84%,
-    transparent 100%
+    to bottom,
+    transparent 0%,
+    transparent calc(var(--erode-pct, 0%) - 4%),
+    rgba(0, 0, 0, 0.35) var(--erode-pct, 0%),
+    rgba(0, 0, 0, 1) calc(var(--erode-pct, 0%) + 6%),
+    rgba(0, 0, 0, 1) 100%
   );
   mask-image: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 1) 48%,
-    rgba(0, 0, 0, 0.78) 64%,
-    rgba(0, 0, 0, 0.22) 84%,
-    transparent 100%
+    to bottom,
+    transparent 0%,
+    transparent calc(var(--erode-pct, 0%) - 4%),
+    rgba(0, 0, 0, 0.35) var(--erode-pct, 0%),
+    rgba(0, 0, 0, 1) calc(var(--erode-pct, 0%) + 6%),
+    rgba(0, 0, 0, 1) 100%
   );
+  transition: opacity 0.25s ease;
 }
 
-/* 2. Dissolving Upper Flakes: crumbling eroded texture on the upper half */
+/* 2. Dissolving Fringe: crumbling eroded stardust texture right along the active erosion waterline */
 .dust-letter-dissolve {
   position: absolute;
   top: 0;
@@ -2348,7 +2350,8 @@
   font-family: var(--font-display, 'Orbitron', sans-serif);
   font-weight: 900;
   pointer-events: none;
-  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.85));
+  opacity: var(--letter-opacity, 1);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.95));
   -webkit-mask-image: repeating-linear-gradient(
     0deg,
     rgba(0, 0, 0, 1) 0px,
@@ -2357,16 +2360,17 @@
     transparent 4px
   ),
   linear-gradient(
-    to top,
+    to bottom,
     transparent 0%,
-    transparent 42%,
-    rgba(0, 0, 0, 0.9) 56%,
-    rgba(0, 0, 0, 0.5) 78%,
-    transparent 96%
+    transparent calc(var(--erode-pct, 0%) - 8%),
+    rgba(0, 0, 0, 0.95) var(--erode-pct, 0%),
+    transparent calc(var(--erode-pct, 0%) + 8%),
+    transparent 100%
   );
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
-  animation: letterErosionPulse 3s ease-in-out infinite alternate;
+  animation: letterErosionPulse 2.5s ease-in-out infinite alternate;
+  transition: opacity 0.25s ease;
 }
 
 @keyframes letterErosionPulse {

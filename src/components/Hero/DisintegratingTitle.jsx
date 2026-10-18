@@ -1,27 +1,45 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useCosmicAudio } from '../../hooks/useCosmicAudio';
 
 /**
  * DisintegratingTitle Component
  * Renders "KIAN RANCES CAGADAS" in the lower middle of Page 1 (#intro).
  * 
- * Key Features:
- * 1. Letter-level disintegration:
- *    - Lower 50% is solid pure white (#ffffff), crisp and 100% readable.
- *    - Upper 50% is physically dissolving with an eroding crumbling stardust texture.
- * 2. Exact stroke-level particle spawning:
- *    - Extracts true non-empty glyph stroke coordinates for each character on screen.
- *    - Dust particles spawn DIRECTLY on the letter strokes with full visibility (alpha ~ 0.95),
- *      so the user visibly sees white stardust crumbs peeling off from each letter itself.
- * 3. Soft powdery stardust (NOT sparks or laser streaks):
- *    - Rendered as soft circular stardust grains with feathered edges and volumetric glow.
- * 4. Silky-smooth gravitational streamline flow:
- *    - Accelerates and curves smoothly from the letters upward into the exact physical center
- *      of the black hole singularity with relativistic accretion swirl and zero velocity jerks.
- * 5. Subtle sci-fi status tag: "ARCHITECT / JUNIOR WEB & GAME DEVELOPER".
+ * 30-Second Gravitational Singularity Lifecycle:
+ * 1. 0.0s - 27.8s (Progressive Disintegration & Siphoning):
+ *    - Letters progressively disintegrate from top to bottom over 28 seconds.
+ *    - The erosion waterline descends across each glyph stroke.
+ *    - Soft powdery stardust grains peel directly off the active crumbling erosion front.
+ *    - Particles stream continuously along relativistic gravitational streamlines
+ *      directly into the black hole singularity core.
+ * 2. 27.8s - 28.6s (Singularity Ingestion):
+ *    - Letters are 100% swallowed into the black hole (0% visible).
+ *    - Remaining in-flight stardust particles cross the event horizon.
+ * 3. 28.6s (Hawking Radiation Flash):
+ *    - Singularity triggers a high-energy Hawking radiation burst flash on window.
+ * 4. 28.8s - 30.0s (Quantum Re-materialization & Respawn):
+ *    - Just like the astronaut companion:
+ *      - Expanding quantum aperture warp portal ring blooms across the title.
+ *      - Celestial harmonic chime plays via useCosmicAudio.
+ *      - High-energy cyan-white brightness bloom re-materializes all letters back to solid pure white.
+ *      - Quantum stardust sparkles burst across the glyph coordinates.
+ * 5. 30.0s:
+ *    - Cycle seamlessly resets to 0.0s for continuous, silky-smooth looping.
  */
 export function DisintegratingTitle() {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
+  const [isRespawning, setIsRespawning] = useState(false);
+
+  const { playChime } = useCosmicAudio();
+  const playChimeRef = useRef(playChime);
+  useEffect(() => {
+    playChimeRef.current = playChime;
+  }, [playChime]);
+
+  const hawkingFiredRef = useRef(false);
+  const chimeFiredRef = useRef(false);
+  const respawnBurstFiredRef = useRef(false);
 
   const WORDS = [
     { text: 'KIAN', key: 'w1' },
@@ -44,19 +62,17 @@ export function DisintegratingTitle() {
 
     // Dust particle collection
     const particles = [];
-    const MAX_PARTICLES = 680;
+    const MAX_PARTICLES = 750;
 
     // Cache of glyph stroke sample points for every letter on screen
     let cachedLetterStrokes = [];
 
-    // Helper: sample exact non-transparent pixel coordinates from letter strokes
+    // Helper: sample exact non-transparent pixel coordinates across the full glyph height
     const sampleLetterStrokes = () => {
       const letterNodes = container.querySelectorAll('.dust-letter-wrap');
       if (!letterNodes || letterNodes.length === 0) return;
 
       const heroSection = canvas.closest('#intro') || document.getElementById('intro') || document.body;
-      const canvasRect = heroSection.getBoundingClientRect();
-
       const newCache = [];
 
       letterNodes.forEach((node) => {
@@ -88,14 +104,17 @@ export function DisintegratingTitle() {
           const imgData = offCtx.getImageData(0, 0, charW, charH).data;
           const strokePoints = [];
 
-          // Sample pixels strictly in the upper 55% of the glyph (the disintegration zone)
-          const maxY = Math.floor(charH * 0.55);
-          for (let y = 1; y < maxY; y += 2) {
+          // Sample pixels across full glyph height (y: 0 -> charH)
+          for (let y = 1; y < charH; y += 2) {
             for (let x = 1; x < charW; x += 2) {
               const alpha = imgData[(y * charW + x) * 4 + 3];
-              // Non-transparent stroke pixel
               if (alpha > 80) {
-                strokePoints.push({ x, y, alpha: alpha / 255 });
+                strokePoints.push({
+                  x,
+                  y,
+                  normY: y / charH, // Normalized vertical position (0.0 top -> 1.0 bottom)
+                  alpha: alpha / 255,
+                });
               }
             }
           }
@@ -110,7 +129,7 @@ export function DisintegratingTitle() {
             });
           }
         } catch {
-          // Fallback if canvas security or memory issue
+          // Fallback if canvas memory or security boundary
         }
       });
 
@@ -143,9 +162,10 @@ export function DisintegratingTitle() {
       });
     }
 
-    // Spawn a powdery stardust grain directly from an actual letter stroke
-    const spawnStardustFromLetter = (canvasRect) => {
+    // Spawn a powdery stardust grain directly from the active erosion frontline
+    const spawnStardustFromLetter = (canvasRect, erodeProgress) => {
       if (particles.length >= MAX_PARTICLES) return;
+      if (erodeProgress >= 0.99) return; // Fully swallowed, stop spawning new letter dust
 
       let startX = 0;
       let startY = 0;
@@ -153,7 +173,16 @@ export function DisintegratingTitle() {
       if (cachedLetterStrokes.length > 0) {
         // Pick a random letter
         const letterData = cachedLetterStrokes[Math.floor(Math.random() * cachedLetterStrokes.length)];
-        const pt = letterData.points[Math.floor(Math.random() * letterData.points.length)];
+
+        // Filter points clustered right around the active descending erosion frontline
+        const minNormY = Math.max(0, erodeProgress - 0.16);
+        const maxNormY = Math.min(1.0, erodeProgress + 0.10);
+        const activePoints = letterData.points.filter(
+          (pt) => pt.normY >= minNormY && pt.normY <= maxNormY
+        );
+
+        const ptPool = activePoints.length > 0 ? activePoints : letterData.points;
+        const pt = ptPool[Math.floor(Math.random() * ptPool.length)];
 
         // Live screen position of this letter
         const nodeRect = letterData.element.getBoundingClientRect();
@@ -166,12 +195,12 @@ export function DisintegratingTitle() {
         const node = letterNodes[Math.floor(Math.random() * letterNodes.length)];
         const nodeRect = node.getBoundingClientRect();
         startX = (nodeRect.left - canvasRect.left) + Math.random() * nodeRect.width;
-        startY = (nodeRect.top - canvasRect.top) + Math.random() * (nodeRect.height * 0.5);
+        startY = (nodeRect.top - canvasRect.top) + (erodeProgress * nodeRect.height);
       }
 
       // Gentle liftoff velocity (soft rising dust)
-      const liftVx = (Math.random() - 0.5) * 10;
-      const liftVy = -18 - Math.random() * 22;
+      const liftVx = (Math.random() - 0.5) * 12;
+      const liftVy = -20 - Math.random() * 24;
 
       particles.push({
         x: startX,
@@ -179,17 +208,54 @@ export function DisintegratingTitle() {
         vx: liftVx,
         vy: liftVy,
         // Soft powdery grain radius (0.75px to 1.8px)
-        size: 0.75 + Math.random() * 1.05,
-        // Initial visibility: 100% visible on the letter stroke itself!
-        alpha: 0.85 + Math.random() * 0.15,
+        size: 0.75 + Math.random() * 1.15,
+        // Initial visibility: 100% visible on the letter stroke itself
+        alpha: 0.88 + Math.random() * 0.12,
         life: 0,
         maxLife: 3.5 + Math.random() * 1.6,
         phase: Math.random() * Math.PI * 2,
         swirlFactor: 0.8 + Math.random() * 0.45,
+        isRespawnSparkle: false,
       });
     };
 
+    // Burst of quantum re-materialization sparkles when letters respawn
+    const spawnRespawnBurst = (canvasRect) => {
+      if (cachedLetterStrokes.length === 0) return;
+      for (let i = 0; i < 80; i++) {
+        const letterData = cachedLetterStrokes[Math.floor(Math.random() * cachedLetterStrokes.length)];
+        const pt = letterData.points[Math.floor(Math.random() * letterData.points.length)];
+        const nodeRect = letterData.element.getBoundingClientRect();
+        const startX = (nodeRect.left - canvasRect.left) + pt.x;
+        const startY = (nodeRect.top - canvasRect.top) + pt.y;
+
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 20 + Math.random() * 60;
+
+        particles.push({
+          x: startX + (Math.random() - 0.5) * 16,
+          y: startY + (Math.random() - 0.5) * 16,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: 1.1 + Math.random() * 1.5,
+          alpha: 1.0,
+          life: 0,
+          maxLife: 0.85 + Math.random() * 0.45,
+          phase: Math.random() * Math.PI * 2,
+          swirlFactor: 0.2,
+          isRespawnSparkle: true,
+        });
+      }
+    };
+
     let lastTime = performance.now();
+    let lastTelemetryTime = 0;
+
+    // 30-Second Gravitational Singularity Lifecycle Parameters
+    const CYCLE_MS = 30000;         // 30.0s total cycle
+    const INGESTION_MS = 27800;     // 27.8s progressive erosion
+    const HAWKING_MS = 28600;       // 28.6s event horizon flash
+    const RESPAWN_MS = 28800;       // 28.8s quantum re-materialization
 
     // 60FPS Silky-Smooth Gravitational Streamline Loop
     const render = (time) => {
@@ -202,16 +268,109 @@ export function DisintegratingTitle() {
 
       const canvasRect = canvas.getBoundingClientRect();
 
-      // Spawn fresh powdery dust grains directly from letter strokes
-      for (let i = 0; i < 7; i++) {
-        spawnStardustFromLetter(canvasRect);
+      // =====================================================================
+      // 30-SECOND DISINTEGRATION & RESPAWN LIFECYCLE CONTROLLER
+      // =====================================================================
+      const cycleElapsed = time % CYCLE_MS;
+
+      // 1. Reset cycle state at loop turnover
+      if (cycleElapsed < 600) {
+        if (hawkingFiredRef.current || chimeFiredRef.current || respawnBurstFiredRef.current) {
+          hawkingFiredRef.current = false;
+          chimeFiredRef.current = false;
+          respawnBurstFiredRef.current = false;
+          setIsRespawning(false);
+        }
       }
 
-      // Center of the singularity (black hole is centered in #intro)
-      const bhX = width / 2;
-      const bhY = height / 2;
+      // Center of the singularity (black hole center coordinates)
+      const bhMetrics = window.BlackHoleEngine?.center;
+      const bhX = bhMetrics?.x ? (bhMetrics.x - canvasRect.left) : width / 2;
+      const bhY = bhMetrics?.y ? (bhMetrics.y - canvasRect.top) : height / 2;
 
-      // Update and render each powdery stardust grain
+      // Phase 1: Progressive Disintegration & Siphoning (0.0s - 27.8s)
+      if (cycleElapsed < INGESTION_MS) {
+        const progress = cycleElapsed / INGESTION_MS; // 0.0 to 1.0
+        const erodePct = progress * 100;
+
+        container.style.setProperty('--erode-pct', `${erodePct.toFixed(2)}%`);
+        container.style.setProperty('--letter-opacity', '1');
+
+        // Dynamic particle spawn rate ramps up as gravitational pull builds
+        const spawnCount = Math.floor(5 + progress * 7);
+        for (let i = 0; i < spawnCount; i++) {
+          spawnStardustFromLetter(canvasRect, progress);
+        }
+
+        // Periodic telemetry HUD broadcast
+        if (time - lastTelemetryTime > 250) {
+          lastTelemetryTime = time;
+          const remainingSec = Math.max(1, Math.ceil((INGESTION_MS - cycleElapsed) / 1000));
+          window.dispatchEvent(
+            new CustomEvent('cosmic-telemetry-update', {
+              detail: {
+                shearRatio: Math.min(1.0, progress * 0.88),
+                distanceText: `${remainingSec}s TO SINGULARITY`,
+                statusText: 'MASS DISINTEGRATION // SIPHONING',
+              },
+            })
+          );
+        }
+      }
+      // Phase 2: Fully Swallowed into Singularity (27.8s - 28.8s)
+      else if (cycleElapsed < RESPAWN_MS) {
+        container.style.setProperty('--erode-pct', '100%');
+        container.style.setProperty('--letter-opacity', '0');
+
+        // Trigger Hawking Radiation Flash on Event Horizon (at 28.6s)
+        if (cycleElapsed >= HAWKING_MS && !hawkingFiredRef.current) {
+          hawkingFiredRef.current = true;
+          window.dispatchEvent(new CustomEvent('trigger-hawking-flash'));
+
+          window.dispatchEvent(
+            new CustomEvent('cosmic-telemetry-update', {
+              detail: {
+                shearRatio: 1.0,
+                distanceText: 'SINGULARITY CORE',
+                statusText: 'SINGULARITY INGESTION COMPLETE',
+              },
+            })
+          );
+        }
+      }
+      // Phase 3: Quantum Re-materialization & Respawn (28.8s - 30.0s)
+      else {
+        container.style.setProperty('--erode-pct', '0%');
+        container.style.setProperty('--letter-opacity', '1');
+
+        if (!chimeFiredRef.current) {
+          chimeFiredRef.current = true;
+          setIsRespawning(true);
+
+          if (typeof playChimeRef.current === 'function') {
+            playChimeRef.current();
+          }
+
+          window.dispatchEvent(
+            new CustomEvent('cosmic-telemetry-update', {
+              detail: {
+                shearRatio: 0.0,
+                distanceText: 'EVENT HORIZON',
+                statusText: 'QUANTUM RE-MATERIALIZATION COMPLETE',
+              },
+            })
+          );
+        }
+
+        if (!respawnBurstFiredRef.current) {
+          respawnBurstFiredRef.current = true;
+          spawnRespawnBurst(canvasRect);
+        }
+      }
+
+      // =====================================================================
+      // 60FPS RELATIVISTIC GRAVITATIONAL STREAMLINE PARTICLE PHYSICS
+      // =====================================================================
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.life += dt;
@@ -222,8 +381,30 @@ export function DisintegratingTitle() {
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         // Particle swallowed into event horizon core or expired
-        if (dist <= 20 || p.life >= p.maxLife) {
+        if ((!p.isRespawnSparkle && dist <= 22) || p.life >= p.maxLife) {
           particles.splice(i, 1);
+          continue;
+        }
+
+        if (p.isRespawnSparkle) {
+          // Re-materialization sparkle physics: high-drag expand & fade
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.vx *= 0.92;
+          p.vy *= 0.92;
+
+          const progress = p.life / p.maxLife;
+          const sparkAlpha = Math.max(0, 1.0 - progress);
+
+          ctx.fillStyle = `rgba(0, 255, 204, ${sparkAlpha.toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * (1.0 - progress * 0.4), 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = `rgba(255, 255, 255, ${(sparkAlpha * 0.6).toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * 0.5, 0, Math.PI * 2);
+          ctx.fill();
           continue;
         }
 
@@ -235,12 +416,12 @@ export function DisintegratingTitle() {
         const sx = -uy;
         const sy = ux;
 
-        // Smooth speed profile: calm liftoff near letters (~40px/s) accelerating up to ~240px/s near core
+        // Smooth speed profile: calm liftoff near letters (~42px/s) accelerating up to ~250px/s near core
         const distClamped = Math.max(0, Math.min(480, dist));
         const proximity = Math.pow(1.0 - distClamped / 480, 1.2);
 
-        const smoothSpeed = 38 + proximity * 210;
-        const smoothSwirl = proximity * 130 * p.swirlFactor;
+        const smoothSpeed = 40 + proximity * 215;
+        const smoothSwirl = proximity * 135 * p.swirlFactor;
 
         // Gentle organic gaseous drift
         const drift = Math.sin(p.y * 0.014 + p.phase + time * 0.0016) * (5 * (1.0 - proximity));
@@ -249,7 +430,7 @@ export function DisintegratingTitle() {
         const targetVy = uy * smoothSpeed + sy * smoothSwirl;
 
         // Exponential velocity steering (lerp) guarantees liquid-smooth curvature with zero jerks
-        const steerRate = 3.3;
+        const steerRate = 3.4;
         p.vx += (targetVx - p.vx) * Math.min(1.0, steerRate * dt);
         p.vy += (targetVy - p.vy) * Math.min(1.0, steerRate * dt);
 
@@ -258,17 +439,17 @@ export function DisintegratingTitle() {
 
         // Smooth fading alpha:
         // Full visibility at the letter stroke, stays bright white, smoothly dissolves into event horizon
-        const progress = p.life / p.maxLife;
+        const pProg = p.life / p.maxLife;
         const fadeHorizon = dist < 65 ? dist / 65 : 1.0;
-        const finalAlpha = Math.max(0, Math.min(1, p.alpha * fadeHorizon * (1.0 - progress * 0.25)));
+        const finalAlpha = Math.max(0, Math.min(1, p.alpha * fadeHorizon * (1.0 - pProg * 0.25)));
 
-        // --- RENDER AS SOFT CIRCULAR STARDUST GRAIN (NOT SPARKS) ---
+        // --- RENDER AS SOFT CIRCULAR STARDUST GRAIN ---
         ctx.fillStyle = `rgba(255, 255, 255, ${finalAlpha.toFixed(3)})`;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
 
-        // Subtle soft halo for volumetric stardust glow
+        // Soft halo for volumetric stardust glow
         if (p.size > 1.25) {
           ctx.fillStyle = `rgba(255, 255, 255, ${(finalAlpha * 0.22).toFixed(3)})`;
           ctx.beginPath();
@@ -305,8 +486,22 @@ export function DisintegratingTitle() {
         aria-label="Kian Rances Cagadas - Software Developer, Systems Architect & Cosmic Explorer"
       >
         <div className="relative flex flex-col items-center w-full max-w-5xl">
+          {/* Quantum Aperture Warp Portal Ring at Respawn Location - Just like the avatar! */}
+          {isRespawning && (
+            <span
+              className="absolute -inset-4 sm:-inset-10 rounded-full border-2 border-cyan-400 animate-ping pointer-events-none opacity-90 shadow-[0_0_50px_rgba(0,255,204,0.95)]"
+              aria-hidden="true"
+            />
+          )}
+
           {/* Main Pure White Disintegrating Name with per-letter base & dissolving fringe */}
-          <h1 className="disintegrating-name font-['Orbitron'] font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-[0.14em] uppercase text-white select-none relative flex flex-wrap items-center justify-center leading-none">
+          <h1
+            className={`disintegrating-name font-['Orbitron'] font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-[0.14em] uppercase text-white select-none relative flex flex-wrap items-center justify-center leading-none transition-all duration-700 ${
+              isRespawning
+                ? 'scale-100 brightness-[240%] drop-shadow-[0_0_35px_rgba(0,255,204,0.95)]'
+                : 'scale-100 brightness-100 drop-shadow-none'
+            }`}
+          >
             {WORDS.map((w, wIdx) => (
               <span key={w.key} className="inline-flex items-center whitespace-nowrap">
                 {w.text.split('').map((char, cIdx) => (
@@ -314,7 +509,7 @@ export function DisintegratingTitle() {
                     key={`${w.key}-${cIdx}`}
                     className="dust-letter-wrap inline-block relative text-white"
                   >
-                    {/* Lower half: Crisp, pure solid white, 100% readable */}
+                    {/* Lower half: Crisp, pure solid white with dynamic descending erosion waterline */}
                     <span className="dust-letter-base inline-block">
                       {char}
                     </span>

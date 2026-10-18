@@ -53,7 +53,7 @@ export function Footer() {
                   {personal.name}
                 </span>
                 <span className="font-['Share_Tech_Mono'] text-xs uppercase tracking-widest text-[#00ffcc] opacity-90 block">
-                  {personal.coordinateTag || "SOL-3 // DEV // 2026"}
+                  {personal.coordinateTag || "SOL-3 - DEV - 2026"}
                 </span>
               </div>
             </div>
@@ -70,11 +70,11 @@ export function Footer() {
             </div>
           </div>
 
-          {/* ================= CENTER: Quick Links & Sector Coordinates ================= */}
+          {/* ================= CENTER: Quick Links ================= */}
           <div className="space-y-6 flex flex-col items-start lg:items-center">
             <div className="w-full lg:max-w-xs">
               <span className="font-['Orbitron'] text-xs font-semibold uppercase tracking-[0.2em] text-[#ffaa00] block mb-3 pb-1 border-b border-[rgba(255,170,0,0.2)]">
-                // NAVIGATION BEACONS
+                NAVIGATION BEACONS
               </span>
               <nav aria-label="Footer Quick Links" className="quick-links grid grid-cols-2 gap-2.5">
                 {navItems.map((item) => (
@@ -94,26 +94,13 @@ export function Footer() {
                 ))}
               </nav>
             </div>
-
-            {/* Lat / Long Sector Coordinates */}
-            <div className="w-full lg:max-w-xs p-3 rounded-lg bg-[#060714]/80 border border-[rgba(140,180,255,0.14)] shadow-[inset_0_0_12px_rgba(0,255,204,0.04)]">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#ffaa00]" />
-                <span className="font-['Orbitron'] text-[10px] font-semibold tracking-widest text-[#ffaa00] uppercase">
-                  ORBITAL POSITION
-                </span>
-              </div>
-              <div className="footer-coords font-['Share_Tech_Mono'] text-xs text-[#5de6ff] tracking-wider break-all select-all">
-                {personal.latLong || "SOL-3 // LAT: 12.8797° N // LON: 121.7740° E"}
-              </div>
-            </div>
           </div>
 
           {/* ================= RIGHT: Quick Contacts & Copyright ================= */}
           <div className="space-y-6 lg:text-right flex flex-col items-start lg:items-end">
             <div className="w-full lg:max-w-xs">
               <span className="font-['Orbitron'] text-xs font-semibold uppercase tracking-[0.2em] text-[#b388ff] block mb-3 pb-1 border-b border-[rgba(179,136,255,0.2)]">
-                // TRANSMISSION CHANNELS
+                TRANSMISSION CHANNELS
               </span>
               <ul className="space-y-2 text-xs sm:text-sm font-['Oxanium']">
                 <li>
@@ -136,7 +123,7 @@ export function Footer() {
                     aria-label="GitHub Profile (opens in new tab)"
                   >
                     <span className="text-[#00ffcc]/60 group-hover:text-[#00ffcc]">⌥</span>
-                    <span className="tracking-wide">GitHub // {contact.githubHandle}</span>
+                    <span className="tracking-wide">GitHub - {contact.githubHandle}</span>
                     <span className="text-[10px] opacity-75">↗</span>
                   </a>
                 </li>
@@ -149,7 +136,7 @@ export function Footer() {
                     aria-label="Facebook Profile (opens in new tab)"
                   >
                     <span className="text-[#00ffcc]/60 group-hover:text-[#00ffcc]">◈</span>
-                    <span className="tracking-wide">Facebook // Direct Comm</span>
+                    <span className="tracking-wide">Facebook - Direct Comm</span>
                     <span className="text-[10px] opacity-75">↗</span>
                   </a>
                 </li>

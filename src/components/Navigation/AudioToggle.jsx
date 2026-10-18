@@ -32,8 +32,8 @@ export function AudioToggle({ className = '' }) {
           ? 'bg-[#00ffcc]/10 border-[#00ffcc]/60 text-[#00ffcc] shadow-[0_0_15px_rgba(0,255,204,0.35)] hover:shadow-[0_0_22px_rgba(0,255,204,0.55)]'
           : 'bg-[#0f142d]/75 border-[rgba(140,180,255,0.2)] text-slate-400 hover:border-[#00ffcc]/40 hover:text-slate-200'
       } ${className}`}
-      aria-label="Cosmic Audio Engine // Procedural Space Drone"
-      title="Cosmic Audio Engine // Procedural Space Drone"
+      aria-label="Cosmic Audio Engine - Procedural Space Drone"
+      title="Cosmic Audio Engine - Procedural Space Drone"
       aria-pressed={isPlaying}
     >
       {/* Speaker SVG Icon with animated waves or muted cross */}

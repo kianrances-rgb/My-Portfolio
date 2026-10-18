@@ -27,7 +27,7 @@ export function WanderingAstro() {
     : [
         "Hi! I'm Astronaut Kian! 👨‍🚀",
         "To the Space and Beyond! 🚀🌌",
-        "Systems Operational // All Cores Online ⚡",
+        "Systems Operational - All Cores Online ⚡",
         "Exploring the Event Horizon... 🕳️",
         "Welcome to My Cosmic Portfolio! ✨",
       ];

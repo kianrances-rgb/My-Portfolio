@@ -185,7 +185,7 @@ export function SpaceInvadersBanner() {
     const next = !isAutoPilot;
     setIsAutoPilot(next);
     gameRef.current.isAutoPilot = next;
-    setTacticalStatus(next ? 'LUNAR AI AUTO-PILOT ENGAGED' : 'PILOT MANUAL FLIGHT OVERRIDE // SPACE TO FIRE');
+    setTacticalStatus(next ? 'LUNAR AI AUTO-PILOT ENGAGED' : 'PILOT MANUAL FLIGHT OVERRIDE - PRESS SPACE TO FIRE');
     if (!next) {
       modernAudio.init();
     }
@@ -329,7 +329,7 @@ export function SpaceInvadersBanner() {
       if (g.isAutoPilot && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS', 'Space'].includes(e.code)) {
         setIsAutoPilot(false);
         g.isAutoPilot = false;
-        setTacticalStatus('PILOT MANUAL FLIGHT OVERRIDE // SPACE TO FIRE');
+        setTacticalStatus('PILOT MANUAL FLIGHT OVERRIDE - PRESS SPACE TO FIRE');
         modernAudio.init();
       }
     };
@@ -370,7 +370,7 @@ export function SpaceInvadersBanner() {
       if (g.isAutoPilot) {
         setIsAutoPilot(false);
         g.isAutoPilot = false;
-        setTacticalStatus('PILOT MANUAL FLIGHT OVERRIDE // SPACE TO FIRE');
+        setTacticalStatus('PILOT MANUAL FLIGHT OVERRIDE - PRESS SPACE TO FIRE');
         modernAudio.init();
       }
     };
@@ -883,7 +883,7 @@ export function SpaceInvadersBanner() {
           g.enemyBullets.splice(i, 1);
 
           if (p.shield <= 0) {
-            setTacticalStatus('CRITICAL HULL WARNING // EMERGENCY RECHARGE ACTIVE');
+            setTacticalStatus('CRITICAL HULL WARNING - EMERGENCY RECHARGE ACTIVE');
           }
           continue;
         }

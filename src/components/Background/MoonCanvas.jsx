@@ -526,7 +526,7 @@ export function MoonCanvas() {
         cursor: isDragging ? 'grabbing' : 'grab',
       }}
       aria-hidden="true"
-      title="3D Interactive Lunar Orbit // Click & drag to spin"
+      title="3D Interactive Lunar Orbit - Click & drag to spin"
     />
   );
 }

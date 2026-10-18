@@ -142,7 +142,7 @@ export function MobileDrawer({ isOpen, onClose, activeSection = 'intro', onNavig
         {/* Drawer Footer with coordinate tag */}
         <div className="pt-4 border-t border-cyan-500/15 text-center">
           <div className="font-mono text-[11px] text-slate-500 tracking-[0.2em] uppercase select-none">
-            {personal.coordinateTag || 'SOL-3 // DEV // 2026'}
+            {personal.coordinateTag || 'SOL-3 - DEV - 2026'}
           </div>
         </div>
       </aside>

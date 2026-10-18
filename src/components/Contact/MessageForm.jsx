@@ -18,7 +18,7 @@ export function MessageForm() {
   });
 
   const [statusText, setStatusText] = useState(
-    `STATUS: ONLINE // TARGET: ${recipientEmail.toLowerCase()}`
+    `STATUS: ONLINE - TARGET: ${recipientEmail.toLowerCase()}`
   );
   const [hudFeedback, setHudFeedback] = useState({
     visible: false,
@@ -44,10 +44,10 @@ export function MessageForm() {
 
     const onCopySuccess = () => {
       setCopiedState(true);
-      setStatusText('STATUS: CLIPBOARD ACCESS GRANTED // READY');
+      setStatusText('STATUS: CLIPBOARD ACCESS GRANTED - READY');
       setHudFeedback({
         visible: true,
-        text: `✦ EMAIL ADDRESS COPIED TO CLIPBOARD // ${emailToCopy}`,
+        text: `✦ EMAIL ADDRESS COPIED TO CLIPBOARD - ${emailToCopy}`,
         type: 'success',
         link: null,
       });
@@ -102,7 +102,7 @@ export function MessageForm() {
       ? `[Cosmic Transmission] ${subject}`
       : `[Cosmic Transmission] Message from ${name}`;
 
-    const bodyContent = `Transmitter Name: ${name}\nReturn Coordinates (Email): ${email}\n\nTransmission Payload:\n${message}\n\n--------------------------------------------------\nTransmitted via Kian Rances Cagadas Cosmic Subspace Terminal`;
+    const bodyContent = `Transmitter Name: ${name}\nReturn Coordinates (Email): ${email}\n\nTransmission Payload:\n${message}\n\n--------------------------------------------------\nTransmitted via Kian Rances Cagadas Cosmic Terminal`;
 
     const fullSubject = encodeURIComponent(subjectLine);
     const fullBody = encodeURIComponent(bodyContent);
@@ -140,11 +140,11 @@ export function MessageForm() {
     setTimeout(() => {
       setProgressWidth(100);
       setStatusText(
-        `STATUS: DIRECTED TO GMAIL // RECIPIENT: ${recipientEmail.toLowerCase()}`
+        `STATUS: DIRECTED TO GMAIL - RECIPIENT: ${recipientEmail.toLowerCase()}`
       );
       setHudFeedback({
         visible: true,
-        text: '✦ OPENING GMAIL COMPOSE // ',
+        text: '✦ OPENING GMAIL COMPOSE...',
         type: 'success',
         link: gmailUrl,
       });
@@ -171,7 +171,7 @@ export function MessageForm() {
           <span className="clight c-green" />
         </div>
         <div className="console-title">
-          DIRECT SUBSPACE MESSAGE COMPOSER // GMAIL DISPATCH
+          DIRECT MESSAGE COMPOSER - GMAIL DISPATCH
         </div>
         <div id="console-status-text" className="console-status">
           {statusText}
@@ -219,7 +219,7 @@ export function MessageForm() {
             name="subject"
             value={formData.subject}
             onChange={handleInputChange}
-            placeholder="Project Collaboration // Technical Inquiry"
+            placeholder="Project Collaboration - Technical Inquiry"
             required
           />
         </div>

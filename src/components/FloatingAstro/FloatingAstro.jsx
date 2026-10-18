@@ -68,7 +68,7 @@ const SECTOR_GUIDES = {
     sector: 'CONTACT',
     icon: '📡',
     messages: [
-      "Arrived at Subspace Contact! Ready to build or collaborate? Transmit a signal!",
+      "Arrived at Contact! Ready to build or collaborate? Transmit a signal!",
       "Click 'TRANSMIT VIA EMAIL' or use the Gmail console to dispatch directly to Kian.",
       "You can also explore his GitHub repositories or connect directly on social channels!",
     ],

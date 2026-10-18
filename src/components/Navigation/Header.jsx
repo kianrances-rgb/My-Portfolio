@@ -74,7 +74,7 @@ export function Header({ activeSection: activeSectionProp, onSectionChange, onNa
               onClick={handleLogoClick}
               className="group relative w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center p-1 bg-gradient-to-br from-[#171d36] to-[#060918] border border-[rgba(140,190,255,0.35)] shadow-[0_0_16px_rgba(93,230,255,0.25)] hover:scale-105 hover:rotate-[-4deg] hover:border-[#00ffcc] hover:shadow-[0_0_24px_rgba(0,255,204,0.5)] transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00ffcc]"
               aria-label="Jump to Singularity Intro"
-              title="Astronaut Helmet // Singularity Core"
+              title="Astronaut Helmet - Singularity Core"
             >
               <svg
                 viewBox="0 0 40 40"

@@ -6,10 +6,10 @@
 export const personal = {
   name: "KIAN RANCES CAGADAS",
   role: "Software Developer, Systems Architect & Cosmic Explorer",
-  missionTag: "MISSION BRIEF // INTERSTELLAR PORTFOLIO",
-  coordinateTag: "SOL-3 // DEV // 2026",
+  missionTag: "MISSION BRIEF - INTERSTELLAR PORTFOLIO",
+  coordinateTag: "SOL-3 - DEV - 2026",
   footerMotto: "Human-crafted computational excellence in the vast cosmic expanse. Typography set in Space Grotesk.",
-  latLong: "SOL-3 // LAT: 12.8797° N // LON: 121.7740° E",
+  latLong: "SOL-3 - LAT: 12.8797° N - LON: 121.7740° E",
 };
 
 export const navItems = [
@@ -176,7 +176,7 @@ export const contact = {
 export const mascotGreetings = [
   "Hi! I'm Astronaut Kian! 👨‍🚀",
   "To the Space and Beyond! 🚀🌌",
-  "Systems Operational // All Cores Online ⚡",
+  "Systems Operational - All Cores Online ⚡",
   "Exploring the Event Horizon... 🕳️",
   "Welcome to My Cosmic Portfolio! ✨",
 ];

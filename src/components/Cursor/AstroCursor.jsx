@@ -373,7 +373,7 @@ export function AstroCursor() {
 
         if (dist <= centerSingularity) {
           distText = 'SINGULARITY CORE (0 KM)';
-          statText = 'DISAPPEARED // INGESTED';
+          statText = 'DISAPPEARED - INGESTED';
         } else if (dist < bh.radius * 0.95) {
           distText = `CRITICAL (${kmDist} KM)`;
           statText = 'EVENT HORIZON COLLAPSE';

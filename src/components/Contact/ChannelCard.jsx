@@ -111,7 +111,7 @@ export function ChannelCard({ channel }) {
 
       {/* Protocol Badge Header */}
       <div className="channel-header">
-        <span className="ch-badge font-mono">CHANNEL {num}</span>
+        <span className="ch-badge font-mono">CHANNEL</span>
         <span className="ch-proto font-mono">{protocol}</span>
       </div>
 

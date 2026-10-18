@@ -208,9 +208,6 @@ export function Header({ activeSection: activeSectionProp, onSectionChange, onNa
                         }`}
                         aria-current={isActive ? 'page' : undefined}
                       >
-                        <span className="font-mono text-[11px] text-[#00ffcc] font-normal">
-                          {item.code}
-                        </span>
                         <span>{item.label}</span>
                       </a>
                     </li>

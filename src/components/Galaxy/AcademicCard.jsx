@@ -72,7 +72,7 @@ export function AcademicCard({ milestone }) {
 
             {/* Tactical Telemetry Badge */}
             <div className="absolute top-2 right-2.5 z-10 pointer-events-none px-2 py-0.5 rounded bg-black/70 backdrop-blur-sm border border-cyan-500/40 text-[10px] font-mono text-cyan-300 tracking-widest uppercase">
-              CAMPUS SECTOR // ARCHIVE
+              CAMPUS ARCHIVE
             </div>
 
             {/* Campus Image with Zoom and Brightness Transition */}

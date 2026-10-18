@@ -28,10 +28,10 @@ export function GalaxyPanel() {
         <header className="panel-header text-center mb-16 relative">
           <div className="panel-badge inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#0a0f23]/80 border border-cyan-500/30 text-xs tracking-[0.16em] mb-4 backdrop-blur-md shadow-[0_0_15px_rgba(0,255,204,0.15)]">
             <span className="sector-code font-mono text-cyan-400 font-semibold">
-              SECTOR 01 // SPIRAL ARM
+              ACADEMIC JOURNEY
             </span>
             <span className="badge-accent text-slate-400 font-medium">
-              ACADEMIC JOURNEY
+              SPIRAL ARM
             </span>
           </div>
 
@@ -39,7 +39,7 @@ export function GalaxyPanel() {
             id="galaxy-heading"
             className="panel-title font-display text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-[0.16em] uppercase text-white mb-3 text-shadow-[0_4px_18px_rgba(0,0,0,0.9)] drop-shadow-[0_0_25px_rgba(93,230,255,0.25)]"
           >
-            THE “GALAXY” PANEL
+            EDUCATION
           </h2>
 
           <p className="panel-subtitle font-body text-base sm:text-lg font-medium tracking-[0.03em] text-slate-300 max-w-2xl mx-auto leading-relaxed">

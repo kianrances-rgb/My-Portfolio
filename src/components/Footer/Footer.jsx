@@ -84,9 +84,6 @@ export function Footer() {
                     onClick={(e) => handleSmoothScroll(e, item.id)}
                     className="qlink group flex items-center gap-2 text-xs sm:text-sm font-['Oxanium'] font-medium text-[#9ab0d6] hover:text-[#00ffcc] transition-colors py-1 focus:outline-none focus-visible:text-[#00ffcc]"
                   >
-                    <span className="text-[10px] font-['Share_Tech_Mono'] text-[#00ffcc]/60 group-hover:text-[#00ffcc] transition-colors">
-                      {item.code}
-                    </span>
                     <span className="tracking-wide uppercase">
                       {item.label}
                     </span>
@@ -107,7 +104,7 @@ export function Footer() {
                 </span>
               </div>
               <div className="footer-coords font-['Share_Tech_Mono'] text-xs text-[#5de6ff] tracking-wider break-all select-all">
-                {personal.latLong || "SECTOR: SOL-3 // LAT: 12.8797° N // LON: 121.7740° E"}
+                {personal.latLong || "SOL-3 // LAT: 12.8797° N // LON: 121.7740° E"}
               </div>
             </div>
           </div>

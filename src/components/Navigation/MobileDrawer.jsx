@@ -83,7 +83,7 @@ export function MobileDrawer({ isOpen, onClose, activeSection = 'intro', onNavig
                 👨‍🚀
               </span>
               <h2 className="font-orbitron font-bold text-sm tracking-[0.16em] text-[#00ffcc] uppercase select-none drop-shadow-[0_0_8px_rgba(0,255,204,0.5)]">
-                SECTOR TELEMETRY
+                NAVIGATION
               </h2>
             </div>
             {/* Close Button (✕) */}
@@ -126,9 +126,6 @@ export function MobileDrawer({ isOpen, onClose, activeSection = 'intro', onNavig
                             aria-hidden="true"
                           />
                         )}
-                        <span className="font-mono text-xs text-[#00ffcc] tracking-widest font-normal">
-                          {item.code}
-                        </span>
                         <span className="tracking-widest">{item.label}</span>
                       </div>
                       <span className="text-xs text-cyan-400/60 group-hover:text-cyan-300 transition-colors">

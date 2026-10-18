@@ -27,16 +27,16 @@ import { useCosmicAudio } from '../../hooks/useCosmicAudio';
 // Sector Explanations & Contextual Insights
 const SECTOR_GUIDES = {
   intro: {
-    sector: 'SECTOR 00 // SINGULARITY',
+    sector: 'SINGULARITY',
     icon: '🕳️',
     messages: [
-      "You're at Sector 00: Singularity! Driven by a real-time relativistic WebGL black hole engine.",
+      "You're at Singularity! Driven by a real-time relativistic WebGL black hole engine.",
       "Look below: Kian's name is in pure white, with its upper edge disintegrating into stardust!",
       "The powdery white dust is physically pulled into the black hole's singularity core.",
     ],
   },
   arcade: {
-    sector: 'SECTOR 0.5 // LUNAR ORBIT DEFENSE',
+    sector: 'LUNAR ORBIT DEFENSE',
     icon: '🚀',
     messages: [
       "Entering Lunar Orbit Defense! Notice the 3D Moon and orbiting asteroids glowing right behind the dogfight!",
@@ -45,39 +45,39 @@ const SECTOR_GUIDES = {
     ],
   },
   galaxy: {
-    sector: 'SECTOR 01 // LUNAR ORBIT & GALAXY',
+    sector: 'EDUCATION',
     icon: '🌙',
     messages: [
-      "Entering Lunar Orbit! Look to the right: a photorealistic 3D Moon with real-time crater depth!",
+      "Entering the Education section! Look to the right: a photorealistic 3D Moon with real-time crater depth!",
       "Click or touch and drag directly on the 3D Moon to spin it in zero-g with realistic momentum!",
       "Notice the asteroid rocks tumbling in gravitational orbit around the lunar surface.",
       "Explore Kian's academic foundation across ICCT Colleges and DAEHAN ICT Strand in the orbital cards.",
     ],
   },
   supernova: {
-    sector: 'SECTOR 02 // SUPERNOVA',
+    sector: 'SKILLS',
     icon: '⚡',
     messages: [
-      "You're inside Sector 02: Supernova! Notice how the 3D Moon shifts angle under solar radiation.",
+      "You're inside the Skills section! Notice how the 3D Moon shifts angle under solar radiation.",
       "You can click and drag the 3D Moon at any time to inspect its day/night terminator crater shadows!",
       "Here are Kian's technical skills forged across Languages, Frontend, Backend, and Systems.",
       "Use the interactive filter bar above to filter by your preferred technical energy cluster!",
     ],
   },
   contact: {
-    sector: 'SECTOR 03 // CONTACT',
+    sector: 'CONTACT',
     icon: '📡',
     messages: [
-      "Arrived at Sector 03: Subspace Contact! Ready to build or collaborate? Transmit a signal!",
+      "Arrived at Subspace Contact! Ready to build or collaborate? Transmit a signal!",
       "Click 'TRANSMIT VIA EMAIL' or use the Gmail console to dispatch directly to Kian.",
       "You can also explore his GitHub repositories or connect directly on social channels!",
     ],
   },
   footer: {
-    sector: 'SOL-3 // MISSION COMPLETE',
+    sector: 'MISSION COMPLETE',
     icon: '✨',
     messages: [
-      "Mission Complete! You've traversed all sectors of Kian Rances Cagadas's cosmic portfolio.",
+      "Mission Complete! You've traversed Kian Rances Cagadas's cosmic portfolio.",
       "Human-crafted computational excellence in the vast cosmic expanse. Have an interstellar day! 🚀",
     ],
   },

@@ -126,7 +126,7 @@ export function SpaceInvadersBanner() {
   const [isAutoPilot, setIsAutoPilot] = useState(true);
   const [soundOn, setSoundOn] = useState(true);
   const [overdriveActive, setOverdriveActive] = useState(false);
-  const [tacticalStatus, setTacticalStatus] = useState('LUNAR ORBIT DEFENSE ACTIVE // SECTOR 0.5');
+  const [tacticalStatus, setTacticalStatus] = useState('LUNAR ORBIT DEFENSE ACTIVE');
 
   // Mutable game simulation ref
   const gameRef = useRef({

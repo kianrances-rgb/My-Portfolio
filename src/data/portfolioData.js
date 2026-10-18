@@ -9,14 +9,14 @@ export const personal = {
   missionTag: "MISSION BRIEF // INTERSTELLAR PORTFOLIO",
   coordinateTag: "SOL-3 // DEV // 2026",
   footerMotto: "Human-crafted computational excellence in the vast cosmic expanse. Typography set in Space Grotesk.",
-  latLong: "SECTOR: SOL-3 // LAT: 12.8797° N // LON: 121.7740° E",
+  latLong: "SOL-3 // LAT: 12.8797° N // LON: 121.7740° E",
 };
 
 export const navItems = [
-  { code: "00", id: "intro", label: "SINGULARITY" },
-  { code: "01", id: "galaxy", label: "GALAXY" },
-  { code: "02", id: "supernova", label: "SUPERNOVA" },
-  { code: "03", id: "contact", label: "CONTACT" },
+  { id: "intro", label: "SINGULARITY" },
+  { id: "galaxy", label: "EDUCATION" },
+  { id: "supernova", label: "SKILLS" },
+  { id: "contact", label: "CONTACT" },
 ];
 
 export const education = [
@@ -147,7 +147,6 @@ export const contact = {
   facebookUrl: "https://www.facebook.com/100024036827109/",
   channels: [
     {
-      num: "01",
       type: "email",
       label: "Email Address",
       value: "Kianrances@gmail.com",
@@ -156,7 +155,6 @@ export const contact = {
       href: "mailto:Kianrances@gmail.com",
     },
     {
-      num: "02",
       type: "github",
       label: "GitHub Account",
       value: "@kianrances-rgb",
@@ -165,7 +163,6 @@ export const contact = {
       href: "https://github.com/kianrances-rgb",
     },
     {
-      num: "03",
       type: "facebook",
       label: "Facebook Profile",
       value: "https://www.facebook.com/100024036827109/",

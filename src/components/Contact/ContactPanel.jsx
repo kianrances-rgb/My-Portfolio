@@ -33,7 +33,7 @@ export function ContactPanel() {
         <header className="panel-header text-center mb-16 relative">
           <div className="panel-badge inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#0a0f23]/80 border border-cyan-500/30 text-xs tracking-[0.16em] mb-4 backdrop-blur-md shadow-[0_0_15px_rgba(0,255,204,0.15)]">
             <span className="sector-code font-mono text-cyan-400 font-semibold">
-              SECTOR 03 // SUBSPACE TRANSCEIVER
+              SUBSPACE TRANSCEIVER
             </span>
             <span className="badge-accent text-slate-400 font-medium">
               DIRECT CONTACT
@@ -55,7 +55,7 @@ export function ContactPanel() {
         {/* 3-Column Contact Channels Grid (Email, GitHub, Facebook) */}
         <div className="contact-channels-grid">
           {channels.map((ch) => (
-            <ChannelCard key={ch.num || ch.type} channel={ch} />
+            <ChannelCard key={ch.type} channel={ch} />
           ))}
         </div>
 

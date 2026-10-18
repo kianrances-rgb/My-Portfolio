@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useCosmicAudio } from '../../hooks/useCosmicAudio';
 
 // Sector Explanations & Contextual Insights (Zero emojis, purely aerospace telemetry)
@@ -9,6 +9,7 @@ const SECTOR_GUIDES = {
       "You're at Singularity, driven by a real-time relativistic WebGL black hole engine.",
       "Notice Kian's title in pure white, with its upper edge disintegrating into cosmic stardust.",
       "The white particle dust is physically pulled into the black hole's singularity core.",
+      "Drag me directly into the black hole center to test quantum gravitational disintegration!",
     ],
   },
   arcade: {
@@ -56,22 +57,24 @@ const SECTOR_GUIDES = {
 
 /**
  * FloatingAstro Component
- * Refined Aerospace Zero-G Roaming Companion & Telemetry Tour Guide.
+ * Refined Aerospace Zero-G Companion with Event Horizon Disintegration Engine.
  * 
  * Features:
- * 1. High-Fidelity Aerospace EVA Suit & Twin-Nozzle Vector Jetpack:
+ * 1. Black Hole Disintegration & Quantum Rebound:
+ *    - Dragging the avatar into the center of the black hole causes gravitational spaghettification,
+ *      accelerating spiral inward collapse, emitting matter siphon particle streams, and triggering
+ *      a Hawking Radiation burst flash on the event horizon.
+ *    - Following quantum tunneling, the avatar re-materializes at the bottom-right of the website
+ *      with an expanding quantum warp aperture ring, chromatic flash, and harmonic chime.
+ * 2. High-Fidelity Aerospace EVA Suit & Twin-Nozzle Vector Jetpack:
  *    - Dual-nozzle gimbal ion thrusters with supersonic Mach diamonds & dynamic plasma plume.
  *    - Lateral RCS (Reaction Control System) cold-gas steering micro-jets firing during banking maneuvers.
  *    - High-pressure cryogenic propellant cylinders with chrome specular reflections.
  *    - Golden visor with dual-layer relativistic curve sheen & horizon reflection glint.
  *    - Telemetry console with pulsing emerald & cyan OLED status nodes.
- * 2. Unpredictable Random Perimeter Roaming:
+ * 3. Unpredictable Random Perimeter Roaming:
  *    - Free, organic zero-g drifting across all outer perimeter zones (Left, Right, Top, Bottom, Corners).
  *    - Strict Middle Repulsion Barrier: Dynamically prevents entering or blocking the central reading area.
- *    - Microgravity velocity banking and inertia damping.
- *    - Draggable anywhere; auto-repels from center back into perimeter track when released.
- * 3. Minimalist Aerospace HUD Capsule:
- *    - Smart adaptive placement (inverts below if near top viewport edge, flips horizontally to stay in bounds).
  */
 export function FloatingAstro() {
   const [isVisible, setIsVisible] = useState(true);
@@ -81,6 +84,12 @@ export function FloatingAstro() {
   const [isPopping, setIsPopping] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isDocked, setIsDocked] = useState(false);
+
+  // Disintegration & Respawn Lifecycle States:
+  // 'idle' -> 'collapsing' (spiraling into singularity) -> 'swallowed' (hidden in singularity)
+  //        -> 'tunneling' (moving to bottom-right) -> 'respawning' (aperture bloom) -> 'idle'
+  const [disintegrateStage, setDisintegrateStage] = useState('idle');
+  const isDisintegratingRef = useRef(false);
 
   // Astronaut live coordinates & physics
   const [pos, setPos] = useState({ x: 0, y: 0 });
@@ -105,6 +114,22 @@ export function FloatingAstro() {
 
   const containerRef = useRef(null);
   const { playChime } = useCosmicAudio();
+
+  // Helper: Retrieve Black Hole Viewport Metrics in Screen Coordinates
+  const getBlackHoleMetrics = useCallback(() => {
+    const introEl = document.getElementById('intro');
+    if (!introEl) return null;
+    const rect = introEl.getBoundingClientRect();
+    // Verify intro section is visible within viewport
+    if (rect.bottom < 60 || rect.top > window.innerHeight - 60) return null;
+
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    const radius = window.BlackHoleEngine?.radius || Math.min(rect.width, rect.height) * 0.16;
+    const tidalRadius = window.BlackHoleEngine?.tidalRadius || radius * 2.8;
+
+    return { x, y, radius, tidalRadius };
+  }, []);
 
   // 1. Initial Position (Comfortable perimeter margin on mount)
   useEffect(() => {
@@ -164,7 +189,7 @@ export function FloatingAstro() {
   // 3. Periodic Message Cycle within the current section
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!document.hidden && !isDragging) {
+      if (!document.hidden && !isDragging && !isDisintegratingRef.current) {
         setMsgIndex((prev) => {
           const guide = SECTOR_GUIDES[currentSection] || SECTOR_GUIDES.intro;
           return (prev + 1) % guide.messages.length;
@@ -177,12 +202,127 @@ export function FloatingAstro() {
     return () => clearInterval(interval);
   }, [currentSection, isDragging]);
 
-  // 4. Autonomous Zero-G Perimeter Roaming Engine (Except the Middle Part)
+  // =========================================================================
+  // 4. BLACK HOLE DISINTEGRATION & BOTTOM-RIGHT RESPAWN ENGINE
+  // =========================================================================
+  const triggerBlackHoleDisintegration = useCallback((bhX, bhY) => {
+    if (isDisintegratingRef.current) return;
+    isDisintegratingRef.current = true;
+
+    setIsDragging(false);
+    setDisintegrateStage('collapsing');
+
+    const p = physicsRef.current;
+    p.targetX = bhX - 50;
+    p.targetY = bhY - 50;
+    p.vx = 0;
+    p.vy = 0;
+
+    if (typeof playChime === 'function') playChime();
+
+    // Emit concentrated stream of relativistic matter siphon particles
+    for (let i = 0; i < 36; i++) {
+      setTimeout(() => {
+        if (typeof window.emitSiphonParticle === 'function') {
+          const offsetX = (Math.random() - 0.5) * 40;
+          const offsetY = (Math.random() - 0.5) * 40;
+          window.emitSiphonParticle(p.x + 50 + offsetX, p.y + 50 + offsetY, bhX, bhY);
+        }
+      }, i * 14);
+    }
+
+    // Telemetry notification: Singularity Breach
+    window.dispatchEvent(
+      new CustomEvent('cosmic-telemetry-update', {
+        detail: {
+          shearRatio: 1.0,
+          distanceText: 'SINGULARITY CORE',
+          statusText: 'SPAGHETTIFYING CORE',
+        },
+      })
+    );
+
+    // Stage 2: Event Horizon Swallow & Hawking Flash (at 450ms)
+    setTimeout(() => {
+      setDisintegrateStage('swallowed');
+      window.dispatchEvent(new CustomEvent('trigger-hawking-flash'));
+
+      window.dispatchEvent(
+        new CustomEvent('cosmic-telemetry-update', {
+          detail: {
+            shearRatio: 1.0,
+            distanceText: 'EVENT HORIZON',
+            statusText: 'QUANTUM DISINTEGRATION COMPLETE',
+          },
+        })
+      );
+    }, 450);
+
+    // Stage 3: Quantum Tunneling to Bottom-Right of Website (at 1250ms)
+    setTimeout(() => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const bottomX = Math.max(30, w - 140);
+      const bottomY = Math.max(120, h - 160);
+
+      p.x = bottomX;
+      p.y = bottomY;
+      p.targetX = bottomX;
+      p.targetY = bottomY;
+      p.vx = 0;
+      p.vy = 0;
+      p.currentZone = 'BOTTOM';
+      setPos({ x: bottomX, y: bottomY });
+      setDisintegrateStage('tunneling');
+    }, 1250);
+
+    // Stage 4: Re-materialization & Respawn in Bottom-Right (at 1650ms)
+    setTimeout(() => {
+      setDisintegrateStage('respawning');
+      if (typeof playChime === 'function') playChime();
+
+      // Announcement in telemetry HUD
+      window.dispatchEvent(
+        new CustomEvent('cosmic-telemetry-update', {
+          detail: {
+            shearRatio: 0.0,
+            distanceText: 'SAFE ORBIT',
+            statusText: 'QUANTUM REBOUND COMPLETE',
+          },
+        })
+      );
+
+      setIsPopping(true);
+      setTimeout(() => setIsPopping(false), 1200);
+    }, 1650);
+
+    // Stage 5: Resume Autonomous Roaming from Bottom-Right (at 2550ms)
+    setTimeout(() => {
+      setDisintegrateStage('idle');
+      isDisintegratingRef.current = false;
+      p.waypointQueue = [];
+      p.roamTimer = 4.0;
+    }, 2550);
+  }, [playChime]);
+
+  // Listen for custom trigger-spaghetti-demo from Telemetry HUD button
+  useEffect(() => {
+    const handleDemoDive = () => {
+      const bh = getBlackHoleMetrics();
+      if (bh) {
+        triggerBlackHoleDisintegration(bh.x, bh.y);
+      }
+    };
+
+    window.addEventListener('trigger-spaghetti-demo', handleDemoDive);
+    return () => window.removeEventListener('trigger-spaghetti-demo', handleDemoDive);
+  }, [getBlackHoleMetrics, triggerBlackHoleDisintegration]);
+
+  // 5. Autonomous Zero-G Perimeter Roaming Engine (Except the Middle Part)
   useEffect(() => {
     let animId = null;
     let lastTime = performance.now();
 
-    // Helper: Compute dynamic perimeter zones and corners
     const getPerimeterMetrics = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
@@ -198,7 +338,6 @@ export function FloatingAstro() {
         marginTop,
         marginBottom,
         rightX,
-        // Corners for safe outer transit
         cTL: { x: marginSide + 10, y: marginTop },
         cTR: { x: rightX, y: marginTop },
         cBR: { x: rightX, y: marginBottom },
@@ -206,12 +345,10 @@ export function FloatingAstro() {
       };
     };
 
-    // Helper: Pick a random destination anywhere along the perimeter track
     const pickNewWaypoint = () => {
       const p = physicsRef.current;
       const { w, h, marginSide, marginTop, marginBottom, rightX, cTL, cTR, cBR, cBL } = getPerimeterMetrics();
 
-      // If queued transitional waypoints exist, execute next step
       if (p.waypointQueue && p.waypointQueue.length > 0) {
         const nextWp = p.waypointQueue.shift();
         p.targetX = nextWp.x;
@@ -220,9 +357,7 @@ export function FloatingAstro() {
         return;
       }
 
-      // Available perimeter zones
       const zones = ['LEFT', 'RIGHT', 'TOP', 'BOTTOM'];
-      // Filter to encourage organic roaming (prefer moving to a different zone 75% of the time)
       const shouldSwitchZone = Math.random() < 0.78;
       const targetZone = shouldSwitchZone
         ? zones.filter((z) => z !== p.currentZone)[Math.floor(Math.random() * (zones.length - 1))]
@@ -230,7 +365,6 @@ export function FloatingAstro() {
 
       p.currentZone = targetZone;
 
-      // Coordinate generators for each zone
       const randomLeftPoint = () => ({
         x: marginSide + Math.random() * 25,
         y: marginTop + 35 + Math.random() * (marginBottom - marginTop - 70),
@@ -251,11 +385,9 @@ export function FloatingAstro() {
         y: marginBottom + Math.random() * 20,
       });
 
-      // Route between zones via perimeter corners so we never intersect the middle
       if (targetZone === 'LEFT') {
         const dest = randomLeftPoint();
         if (p.x > w * 0.5) {
-          // Coming from right side: route via top or bottom extreme edge
           if (p.y < h * 0.5) {
             p.waypointQueue = [cTR, { x: w * 0.5, y: marginTop }, cTL, dest];
           } else {
@@ -271,7 +403,6 @@ export function FloatingAstro() {
       } else if (targetZone === 'RIGHT') {
         const dest = randomRightPoint();
         if (p.x < w * 0.5) {
-          // Coming from left side: route via top or bottom extreme edge
           if (p.y < h * 0.5) {
             p.waypointQueue = [cTL, { x: w * 0.5, y: marginTop }, cTR, dest];
           } else {
@@ -287,7 +418,6 @@ export function FloatingAstro() {
       } else if (targetZone === 'TOP') {
         const dest = randomTopPoint();
         if (p.y > h * 0.5) {
-          // Coming from bottom: route via left or right side
           if (p.x < w * 0.5) {
             p.waypointQueue = [cBL, { x: marginSide, y: h * 0.5 }, cTL, dest];
           } else {
@@ -301,10 +431,8 @@ export function FloatingAstro() {
           p.targetY = dest.y;
         }
       } else {
-        // BOTTOM
         const dest = randomBottomPoint();
         if (p.y < h * 0.5) {
-          // Coming from top: route via left or right side
           if (p.x < w * 0.5) {
             p.waypointQueue = [cTL, { x: marginSide, y: h * 0.5 }, cBL, dest];
           } else {
@@ -331,6 +459,17 @@ export function FloatingAstro() {
       const p = physicsRef.current;
       const { w, h, marginSide, marginTop, marginBottom, rightX } = getPerimeterMetrics();
 
+      // If currently disintegrating, smoothly home into black hole target or hold position
+      if (isDisintegratingRef.current) {
+        if (disintegrateStage === 'collapsing') {
+          p.x += (p.targetX - p.x) * Math.min(1.0, 8.0 * dt);
+          p.y += (p.targetY - p.y) * Math.min(1.0, 8.0 * dt);
+          setPos({ x: Math.round(p.x), y: Math.round(p.y) });
+        }
+        animId = requestAnimationFrame(updatePhysics);
+        return;
+      }
+
       if (!isDragging && !isDocked) {
         p.roamTimer -= dt;
         p.thrustPulse = (p.thrustPulse || 0) + dt * 10;
@@ -347,16 +486,13 @@ export function FloatingAstro() {
         const midTop = 115;
         const midBottom = h - 140;
 
-        // If coordinates ever breach the central content zone
         if (p.x > midLeft && p.x < midRight && p.y > midTop && p.y < midBottom) {
-          // Calculate distance to all 4 outer escape corridors
           const distToLeft = p.x - midLeft;
           const distToRight = midRight - p.x;
           const distToTop = p.y - midTop;
           const distToBottom = midBottom - p.y;
           const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
 
-          // Forcefully repel outward to the closest perimeter edge
           if (minDist === distToLeft) {
             p.vx -= 240 * dt;
             p.targetX = marginSide + 10;
@@ -379,13 +515,11 @@ export function FloatingAstro() {
           p.roamTimer = 3.0;
         }
 
-        // Vector to target waypoint
         const dx = p.targetX - p.x;
         const dy = p.targetY - p.y;
         const dist = Math.hypot(dx, dy);
 
         if (dist > 16) {
-          // Accelerate gently towards waypoint with zero-g momentum
           const moveSpeed = Math.min(60, dist * 0.75);
           const targetVx = (dx / dist) * moveSpeed;
           const targetVy = (dy / dist) * moveSpeed;
@@ -399,17 +533,14 @@ export function FloatingAstro() {
           const currentSpeed = Math.hypot(p.vx, p.vy);
           setIsThrusting(currentSpeed > 14);
 
-          // Banking tilt proportional to velocity vector
           const targetTilt = Math.max(-20, Math.min(20, (p.vx / 45) * 16));
           setTilt(targetTilt);
 
-          // Dynamic RCS micro-bursts when banking
           setRcsFire({
             left: p.vx > 18,
             right: p.vx < -18,
           });
         } else {
-          // Zero-G idle floating bob
           p.vx *= 0.92;
           p.vy *= 0.92;
           const idleX = Math.sin(time * 0.0012) * 0.35;
@@ -421,7 +552,6 @@ export function FloatingAstro() {
           setRcsFire({ left: false, right: false });
         }
 
-        // Clamp inside physical viewport boundaries
         p.x = Math.max(15, Math.min(w - 110, p.x));
         p.y = Math.max(75, Math.min(h - 135, p.y));
 
@@ -433,12 +563,12 @@ export function FloatingAstro() {
 
     animId = requestAnimationFrame(updatePhysics);
     return () => cancelAnimationFrame(animId);
-  }, [isDragging, isDocked]);
+  }, [isDragging, isDocked, disintegrateStage]);
 
-  // 5. Interactive Click & Talk
+  // 6. Interactive Click & Talk
   const handleAstroClick = (e) => {
     e.stopPropagation();
-    if (isDragging) return;
+    if (isDragging || isDisintegratingRef.current) return;
 
     setIsBoosting(true);
     if (typeof playChime === 'function') playChime();
@@ -460,9 +590,9 @@ export function FloatingAstro() {
     }
   };
 
-  // 6. User Drag Handling (Pointer Events)
+  // 7. User Drag Handling & Black Hole Event Horizon Collision Detection
   const handlePointerDown = (e) => {
-    if (e.target.closest('.astro-dock-btn')) return;
+    if (e.target.closest('.astro-dock-btn') || isDisintegratingRef.current) return;
     setIsDragging(true);
     const p = physicsRef.current;
     p.userHasDragged = true;
@@ -476,7 +606,7 @@ export function FloatingAstro() {
   };
 
   const handlePointerMove = (e) => {
-    if (!isDragging) return;
+    if (!isDragging || isDisintegratingRef.current) return;
     const p = physicsRef.current;
     const deltaX = e.clientX - p.dragStart.mouseX;
     const deltaY = e.clientY - p.dragStart.mouseY;
@@ -486,10 +616,42 @@ export function FloatingAstro() {
     p.targetX = p.x;
     p.targetY = p.y;
     setPos({ x: p.x, y: p.y });
+
+    // Real-Time Black Hole Proximity & Middle Horizon Ingestion Detection
+    const bh = getBlackHoleMetrics();
+    if (bh) {
+      const astroCenterX = p.x + 50;
+      const astroCenterY = p.y + 50;
+      const dist = Math.hypot(astroCenterX - bh.x, astroCenterY - bh.y);
+
+      // Siphon matter stream when within gravitational tidal radius
+      if (dist < bh.tidalRadius) {
+        if (typeof window.emitSiphonParticle === 'function') {
+          window.emitSiphonParticle(astroCenterX, astroCenterY, bh.x, bh.y);
+        }
+
+        const shearRatio = Math.max(0, Math.min(1, 1.0 - (dist - bh.radius) / (bh.tidalRadius - bh.radius)));
+        window.dispatchEvent(
+          new CustomEvent('cosmic-telemetry-update', {
+            detail: {
+              shearRatio,
+              distanceText: dist < bh.radius * 1.1 ? 'EVENT HORIZON' : `${Math.round(dist)} KM`,
+              statusText: dist < bh.radius ? 'SINGULARITY BREACH' : 'TIDAL STRETCH',
+            },
+          })
+        );
+      }
+
+      // Check if user has put the avatar into the middle of the black hole
+      if (dist < bh.radius * 0.95) {
+        e.currentTarget.releasePointerCapture?.(e.pointerId);
+        triggerBlackHoleDisintegration(bh.x, bh.y);
+      }
+    }
   };
 
   const handlePointerUp = (e) => {
-    if (isDragging) {
+    if (isDragging && !isDisintegratingRef.current) {
       setIsDragging(false);
       e.currentTarget.releasePointerCapture?.(e.pointerId);
 
@@ -497,7 +659,19 @@ export function FloatingAstro() {
       const w = window.innerWidth;
       const h = window.innerHeight;
 
-      // If user released anywhere in the central forbidden zone, steer immediately to nearest edge
+      // Check if user dropped avatar into the black hole
+      const bh = getBlackHoleMetrics();
+      if (bh) {
+        const astroCenterX = p.x + 50;
+        const astroCenterY = p.y + 50;
+        const dist = Math.hypot(astroCenterX - bh.x, astroCenterY - bh.y);
+        if (dist < bh.radius * 1.2) {
+          triggerBlackHoleDisintegration(bh.x, bh.y);
+          return;
+        }
+      }
+
+      // If user released anywhere else in the central forbidden zone, steer immediately to nearest edge
       const midLeft = Math.max(75, w * 0.12);
       const midRight = Math.min(w - 140, w * 0.88);
       const midTop = 115;
@@ -531,12 +705,17 @@ export function FloatingAstro() {
   const isRightSide = pos.x > (typeof window !== 'undefined' ? window.innerWidth / 2 : 500);
   const isNearTop = pos.y < 165;
 
+  // Determine stage-specific styling classes
+  const isHidden = disintegrateStage === 'swallowed' || disintegrateStage === 'tunneling';
+  const isCollapsing = disintegrateStage === 'collapsing';
+  const isRespawning = disintegrateStage === 'respawning';
+
   return (
     <aside
       ref={containerRef}
       id="floating-astronaut-companion"
-      className={`fixed z-40 transition-opacity duration-700 select-none ${
-        isVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      className={`fixed z-40 transition-opacity duration-500 select-none ${
+        isVisible && !isHidden ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       } ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} ${isBoosting ? 'wander-boost' : ''}`}
       style={{
         left: `${pos.x}px`,
@@ -549,8 +728,16 @@ export function FloatingAstro() {
       onPointerCancel={handlePointerUp}
       aria-label="Astronaut Kian Cosmic Tour Companion"
     >
+      {/* Quantum Aperture Warp Portal Ring at Respawn Location */}
+      {isRespawning && (
+        <span
+          className="absolute -inset-6 rounded-full border-2 border-cyan-400 animate-ping pointer-events-none opacity-90 shadow-[0_0_35px_rgba(0,255,204,0.9)]"
+          aria-hidden="true"
+        />
+      )}
+
       {/* Overhead Minimalist Aerospace Telemetry HUD Speech Capsule */}
-      {!isDocked && (
+      {!isDocked && !isCollapsing && !isHidden && (
         <div
           id="floating-speech-bubble"
           className={`absolute max-w-[280px] sm:max-w-[320px] flex flex-col items-start p-3.5 rounded-2xl bg-[#060814]/90 border border-white/10 backdrop-blur-2xl shadow-[0_16px_40px_rgba(0,0,0,0.85)] ring-1 ring-white/5 transition-all duration-300 z-50 ${
@@ -579,7 +766,9 @@ export function FloatingAstro() {
 
           {/* Contextual Guidance Text */}
           <p className="text-left font-outfit text-xs text-white/90 leading-relaxed pt-0.5 whitespace-normal">
-            {currentMsg}
+            {isRespawning
+              ? 'Event horizon breached! Quantum tunneling re-materialization complete.'
+              : currentMsg}
           </p>
         </div>
       )}
@@ -600,14 +789,26 @@ export function FloatingAstro() {
 
       {/* Refined Aerospace EVA Astronaut Body & Vector Jetpack */}
       <div
-        className="floating-astro-body transition-transform duration-200"
-        style={{ transform: `rotate(${tilt}deg)` }}
+        className={`floating-astro-body transition-all duration-300 ${
+          isCollapsing
+            ? 'scale-[0.1] rotate-[720deg] blur-[3px] brightness-[300%] opacity-20 duration-500'
+            : isRespawning
+            ? 'scale-100 rotate-0 blur-0 brightness-150 duration-700'
+            : 'scale-100 rotate-0 blur-0 brightness-100'
+        }`}
+        style={{
+          transform: isCollapsing
+            ? 'scale(0.08) rotate(720deg)'
+            : isRespawning
+            ? 'scale(1.0) rotate(0deg)'
+            : `rotate(${tilt}deg)`,
+        }}
         onClick={handleAstroClick}
         onKeyDown={handleKeyDown}
         tabIndex={0}
         role="button"
         aria-label="Astronaut Kian - Click to talk & flip, drag to reposition"
-        title="Click to interact • Drag to reposition in zero-g"
+        title="Click to interact • Drag into black hole center to test disintegration!"
       >
         <svg
           className="w-[100px] h-[100px] sm:w-[120px] sm:h-[120px] filter drop-shadow-[0_12px_28px_rgba(0,0,0,0.7)] drop-shadow-[0_0_15px_rgba(0,255,204,0.3)]"
@@ -689,9 +890,7 @@ export function FloatingAstro() {
             </filter>
           </defs>
 
-          {/* ============================================================== */}
           {/* LAYER 1: ZERO-G TETHER LIFELINE & PROPULSION WAKE */}
-          {/* ============================================================== */}
           <path
             d="M 22 55 C 8 62, -6 50, -18 60"
             fill="none"
@@ -701,12 +900,8 @@ export function FloatingAstro() {
             opacity="0.8"
           />
 
-          {/* ============================================================== */}
           {/* LAYER 2: TWIN GIMBAL ION THRUSTER JETS & SUPERSONIC MACH DIAMONDS */}
-          {/* ============================================================== */}
-          {/* Left Engine Vector Exhaust */}
           <g className="left-engine-exhaust">
-            {/* Outer Cyan Plasma Envelope */}
             <ellipse
               cx="26"
               cy={isBoosting || isDragging || isThrusting ? 82 : 74}
@@ -714,7 +909,6 @@ export function FloatingAstro() {
               ry={isBoosting || isDragging || isThrusting ? 18 : 10}
               fill="url(#ionFlameOuter)"
             />
-            {/* Inner Electric-White Core Flame */}
             <ellipse
               cx="26"
               cy={isBoosting || isDragging || isThrusting ? 78 : 72}
@@ -722,13 +916,10 @@ export function FloatingAstro() {
               ry={isBoosting || isDragging || isThrusting ? 11 : 6}
               fill="url(#ionFlameCore)"
             />
-            {/* Mach Shock Diamond */}
             <ellipse cx="26" cy="71" rx="1.5" ry="2" fill="#ffffff" opacity="0.9" />
           </g>
 
-          {/* Right Engine Vector Exhaust */}
           <g className="right-engine-exhaust">
-            {/* Outer Cyan Plasma Envelope */}
             <ellipse
               cx="74"
               cy={isBoosting || isDragging || isThrusting ? 82 : 74}
@@ -736,7 +927,6 @@ export function FloatingAstro() {
               ry={isBoosting || isDragging || isThrusting ? 18 : 10}
               fill="url(#ionFlameOuter)"
             />
-            {/* Inner Electric-White Core Flame */}
             <ellipse
               cx="74"
               cy={isBoosting || isDragging || isThrusting ? 78 : 72}
@@ -744,7 +934,6 @@ export function FloatingAstro() {
               ry={isBoosting || isDragging || isThrusting ? 11 : 6}
               fill="url(#ionFlameCore)"
             />
-            {/* Mach Shock Diamond */}
             <ellipse cx="74" cy="71" rx="1.5" ry="2" fill="#ffffff" opacity="0.9" />
           </g>
 
@@ -756,10 +945,7 @@ export function FloatingAstro() {
             <circle cx="74" cy="95" r="1.1" fill="#00ffcc" />
           </g>
 
-          {/* ============================================================== */}
           {/* LAYER 3: MANNED MANEUVERING UNIT (MMU) JETPACK CHASSIS & TANKS */}
-          {/* ============================================================== */}
-          {/* Main Composite Backpack Chassis */}
           <rect
             x="28"
             y="32"
@@ -771,12 +957,10 @@ export function FloatingAstro() {
             strokeWidth="1.8"
           />
 
-          {/* Backpack Heatsink Cooling Fins */}
           <line x1="36" y1="42" x2="64" y2="42" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
           <line x1="36" y1="47" x2="64" y2="47" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
           <line x1="36" y1="52" x2="64" y2="52" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
 
-          {/* Dual High-Pressure Cryogenic Propellant Cylinders */}
           {/* Left Tank */}
           <rect
             x="20"
@@ -807,23 +991,19 @@ export function FloatingAstro() {
           <polygon points="23,62 29,62 31,68 21,68" fill="url(#nozzleGrad)" stroke="#64748b" strokeWidth="1" />
           <polygon points="71,62 77,62 79,68 69,68" fill="url(#nozzleGrad)" stroke="#64748b" strokeWidth="1" />
 
-          {/* Lateral RCS Cold-Gas Steering Nozzles (Fires when banking) */}
+          {/* Lateral RCS Cold-Gas Steering Nozzles */}
           <circle cx="18" cy="33" r="2.5" fill="#1e293b" stroke="#64748b" strokeWidth="1" />
           <circle cx="82" cy="33" r="2.5" fill="#1e293b" stroke="#64748b" strokeWidth="1" />
 
-          {/* Left RCS Plume Burst */}
           {rcsFire.left && (
             <ellipse cx="14" cy="33" rx="4.5" ry="2" fill="#38bdf8" opacity="0.9" />
           )}
 
-          {/* Right RCS Plume Burst */}
           {rcsFire.right && (
             <ellipse cx="86" cy="33" rx="4.5" ry="2" fill="#38bdf8" opacity="0.9" />
           )}
 
-          {/* ============================================================== */}
           {/* LAYER 4: SPACESUIT LEGS & PRESSURIZED MAGNETIC BOOTS */}
-          {/* ============================================================== */}
           <rect
             x="34"
             y="65"
@@ -845,17 +1025,13 @@ export function FloatingAstro() {
             strokeWidth="1.8"
           />
 
-          {/* Articulated Knee Pads */}
           <rect x="35" y="73" width="10" height="4" rx="1.5" fill="#334155" opacity="0.5" />
           <rect x="55" y="73" width="10" height="4" rx="1.5" fill="#334155" opacity="0.5" />
 
-          {/* Pressurized EVA Boots */}
           <rect x="32" y="80" width="14" height="7.5" rx="3.5" fill="#1e293b" stroke="#475569" strokeWidth="1.2" />
           <rect x="54" y="80" width="14" height="7.5" rx="3.5" fill="#1e293b" stroke="#475569" strokeWidth="1.2" />
 
-          {/* ============================================================== */}
           {/* LAYER 5: SPACESUIT TORSO & TELEMETRY CHEST CONSOLE */}
-          {/* ============================================================== */}
           <rect
             x="32"
             y="35"
@@ -867,7 +1043,6 @@ export function FloatingAstro() {
             strokeWidth="2"
           />
 
-          {/* Dual Chest Computer Console */}
           <rect
             x="40"
             y="43"
@@ -878,18 +1053,13 @@ export function FloatingAstro() {
             stroke="#334155"
             strokeWidth="1.2"
           />
-          {/* Telemetry Status LEDs */}
           <circle cx="45" cy="50" r="2.2" fill="#10b981" className="animate-pulse" />
           <circle cx="55" cy="50" r="2.2" fill="#00ffcc" className="animate-pulse" />
 
-          {/* Utility Shoulder Straps */}
           <path d="M 36 36 L 40 50" stroke="#334155" strokeWidth="1.8" />
           <path d="M 64 36 L 60 50" stroke="#334155" strokeWidth="1.8" />
 
-          {/* ============================================================== */}
           {/* LAYER 6: ARTICULATED ARMS & PRESSURIZED GLOVES */}
-          {/* ============================================================== */}
-          {/* Left Arm (Zero-g relaxed drift) */}
           <path
             d="M 33 42 L 18 54 L 22 59 L 36 48 Z"
             fill="url(#suitFabricGrad)"
@@ -898,7 +1068,6 @@ export function FloatingAstro() {
           />
           <circle cx="19" cy="57" r="4.5" fill="#1e293b" />
 
-          {/* Right Arm (Zero-g friendly wave) */}
           <g className="w-waving-arm">
             <path
               d="M 67 42 L 82 30 L 86 35 L 70 48 Z"
@@ -910,10 +1079,7 @@ export function FloatingAstro() {
             <path d="M 84 27 L 89 22 L 91 26 L 87 31" fill="#1e293b" />
           </g>
 
-          {/* ============================================================== */}
           {/* LAYER 7: 3D SPHERICAL HELMET & RELATIVISTIC GOLD VISOR */}
-          {/* ============================================================== */}
-          {/* Helmet Sphere */}
           <circle
             cx="50"
             cy="26"
@@ -923,7 +1089,6 @@ export function FloatingAstro() {
             strokeWidth="2.5"
           />
 
-          {/* Gold Visor Shield */}
           <ellipse
             cx="50"
             cy="26"
@@ -934,7 +1099,6 @@ export function FloatingAstro() {
             strokeWidth="1.6"
           />
 
-          {/* Curvature Reflection Specular Glint */}
           <ellipse
             cx="46"
             cy="22"
@@ -944,7 +1108,6 @@ export function FloatingAstro() {
             transform="rotate(-15 46 22)"
           />
 
-          {/* Helmet Antenna & Pulsing Cyan/Ruby Beacon */}
           <line
             x1="64"
             y1="16"

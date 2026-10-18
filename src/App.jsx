@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StarfieldCanvas, MoonCanvas } from './components/Background';
+import { SiphonCanvas } from './components/Cursor';
 import { FloatingAstro } from './components/FloatingAstro';
 import { Header } from './components/Navigation';
 import { Singularity } from './components/Hero';
@@ -71,6 +72,9 @@ export function App() {
 
       {/* 2. Fullscreen Volumetric Starfield Canvas Background */}
       <StarfieldCanvas />
+
+      {/* 2.2. Relativistic Matter Siphon Particle Canvas */}
+      <SiphonCanvas />
 
       {/* 2.5. Photorealistic 3D Interactive Moon Background (Active after Page 1) */}
       <MoonCanvas />

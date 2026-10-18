@@ -2172,6 +2172,51 @@
   100% { transform: translateX(-50%) scale(1); opacity: 1; }
 }
 
+/* Dynamic Bubble Alignment for Perimeter Roaming */
+.floating-speech-bubble.bubble-align-right {
+  left: auto !important;
+  right: 0 !important;
+  transform: none !important;
+}
+
+.floating-speech-bubble.bubble-align-right::after {
+  left: auto !important;
+  right: 38px !important;
+  transform: none !important;
+}
+
+.floating-speech-bubble.bubble-align-left {
+  left: 0 !important;
+  right: auto !important;
+  transform: none !important;
+}
+
+.floating-speech-bubble.bubble-align-left::after {
+  left: 38px !important;
+  right: auto !important;
+  transform: none !important;
+}
+
+.floating-speech-bubble.bubble-align-right.bubble-pop {
+  animation: bubblePopEffectRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+@keyframes bubblePopEffectRight {
+  0% { transform: scale(0.85); opacity: 0.5; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.floating-speech-bubble.bubble-align-left.bubble-pop {
+  animation: bubblePopEffectLeft 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+@keyframes bubblePopEffectLeft {
+  0% { transform: scale(0.85); opacity: 0.5; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 .astro-dock-btn {
   width: 18px;
   height: 18px;

@@ -102,6 +102,9 @@ export function FloatingAstro() {
     vy: 0,
     targetX: 0,
     targetY: 0,
+    currentSide: 'RIGHT', // 'RIGHT' or 'LEFT'
+    verticalRunCount: 0,
+    waypointQueue: [],
     roamTimer: 0,
     pauseTimer: 0,
     userHasDragged: false,
@@ -112,15 +115,16 @@ export function FloatingAstro() {
   const containerRef = useRef(null);
   const { playChime } = useCosmicAudio();
 
-  // 1. Initial Position (Comfortable margin on mount)
+  // 1. Initial Position (Comfortable perimeter margin on mount)
   useEffect(() => {
     const initPos = () => {
-      const defaultX = Math.max(20, window.innerWidth - 180);
+      const defaultX = Math.max(20, window.innerWidth - 145);
       const defaultY = Math.max(120, window.innerHeight - 240);
       physicsRef.current.x = defaultX;
       physicsRef.current.y = defaultY;
       physicsRef.current.targetX = defaultX;
       physicsRef.current.targetY = defaultY;
+      physicsRef.current.currentSide = 'RIGHT';
       setPos({ x: defaultX, y: defaultY });
     };
 
@@ -180,35 +184,104 @@ export function FloatingAstro() {
     return () => clearInterval(interval);
   }, [currentSection, isDragging]);
 
-  // 4. Autonomous Zero-G Random Roaming Engine (60FPS Physics Loop)
+  // 4. Autonomous Zero-G Perimeter Roaming Engine (Strictly Sides + Up/Down)
   useEffect(() => {
     let animId = null;
     let lastTime = performance.now();
 
-    // Helper: Pick a new pleasant waypoint across the viewport margins
+    // Helper: Pick a new waypoint restricted strictly to the side gutters, cruising up/down
     const pickNewWaypoint = () => {
       const p = physicsRef.current;
       const w = window.innerWidth;
       const h = window.innerHeight;
 
-      // Choose a random quadrant/margin to explore without covering center reading text
-      const zones = [
-        // Top-right
-        { minX: w - 220, maxX: w - 110, minY: 110, maxY: 260 },
-        // Mid-right
-        { minX: w - 210, maxX: w - 100, minY: 280, maxY: Math.max(300, h - 220) },
-        // Bottom-right
-        { minX: Math.max(120, w - 240), maxX: w - 90, minY: Math.max(140, h - 220), maxY: h - 140 },
-        // Bottom-left
-        { minX: 30, maxX: Math.min(220, w - 150), minY: Math.max(140, h - 220), maxY: h - 140 },
-        // Mid-left
-        { minX: 25, maxX: 150, minY: 180, maxY: Math.max(240, h - 240) },
-      ];
+      // A. Process queued perimeter corner waypoints if transitioning across sides
+      if (p.waypointQueue && p.waypointQueue.length > 0) {
+        const nextWp = p.waypointQueue.shift();
+        p.targetX = nextWp.x;
+        p.targetY = nextWp.y;
+        p.roamTimer = nextWp.duration || 3.5;
+        return;
+      }
 
-      const zone = zones[Math.floor(Math.random() * zones.length)];
-      p.targetX = zone.minX + Math.random() * (zone.maxX - zone.minX);
-      p.targetY = zone.minY + Math.random() * (zone.maxY - zone.minY);
-      p.roamTimer = 6.0 + Math.random() * 5.0; // Stay/travel for 6-11 seconds
+      p.verticalRunCount = (p.verticalRunCount || 0) + 1;
+
+      // B. After 3-4 vertical runs on one side, execute a safe perimeter transition to opposite side
+      const shouldSwitchSide = p.verticalRunCount >= 4;
+
+      if (shouldSwitchSide) {
+        p.verticalRunCount = 0;
+        const targetSide = p.currentSide === 'RIGHT' ? 'LEFT' : 'RIGHT';
+        p.currentSide = targetSide;
+
+        // Choose between TOP perimeter corridor (y ~ 85) or BOTTOM perimeter corridor (y ~ h - 110)
+        const useTopPerimeter = p.y < h * 0.48;
+
+        if (targetSide === 'LEFT') {
+          // Transit from RIGHT to LEFT along top or bottom extreme edge
+          if (useTopPerimeter) {
+            p.waypointQueue = [
+              { x: 55, y: 85, duration: 3.5 }, // Top-Left corner
+              { x: 45 + Math.random() * 25, y: 160 + Math.random() * 120, duration: 6.0 }, // Left side upper corridor
+            ];
+            p.targetX = w - 100;
+            p.targetY = 85;
+            p.roamTimer = 3.0;
+          } else {
+            p.waypointQueue = [
+              { x: 55, y: h - 110, duration: 3.5 }, // Bottom-Left corner
+              { x: 45 + Math.random() * 25, y: h - 260 - Math.random() * 120, duration: 6.0 }, // Left side lower corridor
+            ];
+            p.targetX = w - 100;
+            p.targetY = h - 110;
+            p.roamTimer = 3.0;
+          }
+        } else {
+          // Transit from LEFT to RIGHT along top or bottom extreme edge
+          if (useTopPerimeter) {
+            p.waypointQueue = [
+              { x: w - 100, y: 85, duration: 3.5 }, // Top-Right corner
+              { x: w - 120 - Math.random() * 25, y: 160 + Math.random() * 120, duration: 6.0 }, // Right side upper corridor
+            ];
+            p.targetX = 55;
+            p.targetY = 85;
+            p.roamTimer = 3.0;
+          } else {
+            p.waypointQueue = [
+              { x: w - 100, y: h - 110, duration: 3.5 }, // Bottom-Right corner
+              { x: w - 120 - Math.random() * 25, y: h - 260 - Math.random() * 120, duration: 6.0 }, // Right side lower corridor
+            ];
+            p.targetX = 55;
+            p.targetY = h - 110;
+            p.roamTimer = 3.0;
+          }
+        }
+        return;
+      }
+
+      // C. Normal vertical travel up and down along the current side
+      if (p.currentSide === 'LEFT') {
+        p.targetX = 35 + Math.random() * 35; // x in [35, 70]
+        if (p.y < h * 0.45) {
+          // Cruise DOWNwards along left side
+          p.targetY = Math.min(h - 140, h * 0.55 + Math.random() * (h * 0.30));
+        } else {
+          // Cruise UPwards along left side
+          p.targetY = Math.max(110, 110 + Math.random() * (h * 0.32));
+        }
+      } else {
+        // Right side
+        p.targetX = Math.max(20, w - 145 + Math.random() * 50); // x in [w - 145, w - 95]
+        if (p.y < h * 0.45) {
+          // Cruise DOWNwards along right side
+          p.targetY = Math.min(h - 140, h * 0.55 + Math.random() * (h * 0.30));
+        } else {
+          // Cruise UPwards along right side
+          p.targetY = Math.max(110, 110 + Math.random() * (h * 0.32));
+        }
+      }
+
+      p.roamTimer = 5.5 + Math.random() * 4.5; // Stay/travel for 5.5 to 10 seconds
     };
 
     pickNewWaypoint();
@@ -218,11 +291,32 @@ export function FloatingAstro() {
       lastTime = time;
 
       const p = physicsRef.current;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
 
       if (!isDragging && !isDocked) {
         p.roamTimer -= dt;
         if (p.roamTimer <= 0) {
           pickNewWaypoint();
+        }
+
+        // Active Repulsion Barrier: Strictly prevent entering central content zone
+        const midLeft = Math.max(90, w * 0.12);
+        const midRight = Math.min(w - 150, w * 0.88);
+        const topPerimeterY = 105;
+        const bottomPerimeterY = h - 125;
+
+        // If inside central forbidden zone (and not safely in top or bottom margin)
+        if (p.y > topPerimeterY && p.y < bottomPerimeterY && p.x > midLeft && p.x < midRight) {
+          if (p.x < w / 2) {
+            p.vx -= 150 * dt; // Repel towards left side
+            p.currentSide = 'LEFT';
+            p.targetX = 45;
+          } else {
+            p.vx += 150 * dt; // Repel towards right side
+            p.currentSide = 'RIGHT';
+            p.targetX = w - 120;
+          }
         }
 
         // Vector to target waypoint
@@ -236,8 +330,8 @@ export function FloatingAstro() {
           const targetVx = (dx / dist) * moveSpeed;
           const targetVy = (dy / dist) * moveSpeed;
 
-          p.vx += (targetVx - p.vx) * Math.min(1.0, 1.6 * dt);
-          p.vy += (targetVy - p.vy) * Math.min(1.0, 1.6 * dt);
+          p.vx += (targetVx - p.vx) * Math.min(1.0, 1.8 * dt);
+          p.vy += (targetVy - p.vy) * Math.min(1.0, 1.8 * dt);
 
           p.x += p.vx * dt;
           p.y += p.vy * dt;
@@ -258,8 +352,8 @@ export function FloatingAstro() {
         }
 
         // Clamp inside screen bounds
-        p.x = Math.max(15, Math.min(window.innerWidth - 120, p.x));
-        p.y = Math.max(80, Math.min(window.innerHeight - 150, p.y));
+        p.x = Math.max(15, Math.min(w - 120, p.x));
+        p.y = Math.max(80, Math.min(h - 145, p.y));
 
         setPos({ x: Math.round(p.x), y: Math.round(p.y) });
       }
@@ -329,8 +423,20 @@ export function FloatingAstro() {
     if (isDragging) {
       setIsDragging(false);
       e.currentTarget.releasePointerCapture?.(e.pointerId);
-      // Resume wandering in 4 seconds
-      physicsRef.current.roamTimer = 4.0;
+
+      const p = physicsRef.current;
+      const w = window.innerWidth;
+      // If user released in the middle, steer smoothly toward nearest side
+      if (p.x < w / 2) {
+        p.currentSide = 'LEFT';
+        p.targetX = 45;
+      } else {
+        p.currentSide = 'RIGHT';
+        p.targetX = w - 120;
+      }
+      p.targetY = p.y;
+      p.waypointQueue = [];
+      p.roamTimer = 4.0;
     }
   };
 
@@ -341,6 +447,7 @@ export function FloatingAstro() {
 
   const activeGuide = SECTOR_GUIDES[currentSection] || SECTOR_GUIDES.intro;
   const currentMsg = activeGuide.messages[msgIndex % activeGuide.messages.length];
+  const isRightSide = pos.x > (typeof window !== 'undefined' ? window.innerWidth / 2 : 500);
 
   return (
     <aside
@@ -365,8 +472,8 @@ export function FloatingAstro() {
         <div
           id="floating-speech-bubble"
           className={`floating-speech-bubble max-w-[290px] sm:max-w-[340px] flex-col !items-start ${
-            isPopping ? 'bubble-pop' : ''
-          }`}
+            isRightSide ? 'bubble-align-right' : 'bubble-align-left'
+          } ${isPopping ? 'bubble-pop' : ''}`}
           aria-live="polite"
         >
           {/* Sector Badge Tag */}

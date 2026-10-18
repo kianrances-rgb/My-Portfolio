@@ -96,16 +96,16 @@ export function StarfieldCanvas() {
     // TRUE PATH-HISTORY SHOOTING STAR & METEOR ENGINE
     // =========================================================================
     let meteors = [];
-    let nextMeteorTimer = 2.0 + Math.random() * 2.5;
+    let nextMeteorTimer = 1.0; // Quick initial spawn, then strictly every 3 seconds
 
     const spawnMeteor = () => {
-      // Natural diagonal trajectory (24° to 46° downward-right)
-      const angle = (Math.PI * 0.20) + (Math.random() - 0.5) * 0.32;
-      const speed = 850 + Math.random() * 350; // Smooth 850 - 1200 px/sec
+      // Natural diagonal trajectory (22° to 42° downward-right)
+      const angle = (Math.PI * 0.18) + (Math.random() - 0.5) * 0.28;
+      const speed = 2100 + Math.random() * 700; // Hypersonic 2100 - 2800 px/sec
 
       // Entry origin along top or upper-left
       let startX, startY;
-      if (Math.random() > 0.45) {
+      if (Math.random() > 0.4) {
         startX = Math.random() * (width * 0.85);
         startY = -30;
       } else {
@@ -113,8 +113,8 @@ export function StarfieldCanvas() {
         startY = Math.random() * (height * 0.45);
       }
 
-      const burnDuration = 0.75 + Math.random() * 0.35; // 0.75s to 1.1s active flight
-      const trailLife = 0.38; // Trail lingers stationary for 0.38s in space
+      const burnDuration = 0.32 + Math.random() * 0.18; // 0.32s to 0.50s active flight flash
+      const trailLife = 0.42; // Ionized trail stays stationary in sky and dissolves over 0.42s
 
       meteors.push({
         x: startX,
@@ -204,13 +204,11 @@ export function StarfieldCanvas() {
         }
       }
 
-      // 2. Spawn shooting stars on natural astronomical cadence
+      // 2. Spawn shooting stars consistently every 3 seconds
       nextMeteorTimer -= dt;
       if (nextMeteorTimer <= 0) {
-        if (meteors.length < 2) {
-          spawnMeteor();
-        }
-        nextMeteorTimer = 3.5 + Math.random() * 4.5; // Next star in 3.5 - 8 seconds
+        spawnMeteor();
+        nextMeteorTimer = 3.0; // Strictly every 3 seconds as requested
       }
 
       // 3. Render and update meteors with True Path-History Particle Engine
@@ -225,12 +223,12 @@ export function StarfieldCanvas() {
           m.x += m.vx * dt;
           m.y += m.vy * dt;
 
-          // Head brightness light curve (gentle ignition ramp and burnout taper)
+          // Head brightness light curve (rapid ignition ramp and burnout taper)
           let headBrightness = 1.0;
-          if (m.age < 0.12) {
-            headBrightness = m.age / 0.12;
-          } else if (m.age > m.burnDuration - 0.18) {
-            headBrightness = Math.max(0, (m.burnDuration - m.age) / 0.18);
+          if (m.age < 0.08) {
+            headBrightness = m.age / 0.08;
+          } else if (m.age > m.burnDuration - 0.12) {
+            headBrightness = Math.max(0, (m.burnDuration - m.age) / 0.12);
           }
 
           // Deposit a point in the trail anchored at this exact sky coordinate
@@ -241,16 +239,16 @@ export function StarfieldCanvas() {
             brightness: headBrightness,
           });
 
-          // Shed occasional micro-embers along the path
-          if (Math.random() < 0.28) {
+          // Shed micro-embers along the path
+          if (Math.random() < 0.35) {
             m.embers.push({
-              x: m.x + (Math.random() - 0.5) * 4,
-              y: m.y + (Math.random() - 0.5) * 4,
-              vx: m.vx * 0.12 + (Math.random() - 0.5) * 35,
-              vy: m.vy * 0.12 + (Math.random() - 0.5) * 35,
-              life: 0.18 + Math.random() * 0.2,
+              x: m.x + (Math.random() - 0.5) * 6,
+              y: m.y + (Math.random() - 0.5) * 6,
+              vx: m.vx * 0.12 + (Math.random() - 0.5) * 40,
+              vy: m.vy * 0.12 + (Math.random() - 0.5) * 40,
+              life: 0.16 + Math.random() * 0.22,
               maxLife: 0.38,
-              size: 0.75 + Math.random() * 1.1,
+              size: 0.75 + Math.random() * 1.2,
             });
           }
         }
@@ -268,56 +266,79 @@ export function StarfieldCanvas() {
 
         ctx.save();
 
-        // --- RENDER TRAIL AS A REAL PATH PAINTED ACROSS THE SKY ---
+        // --- RENDER TRAIL AS A CONTINUOUS IONIZATION BEAM ANCHORED IN SPACE ---
         if (m.history.length > 1) {
-          // Pass 1: Outer glowing plasma sheath
-          for (let j = 0; j < m.history.length - 1; j++) {
-            const p1 = m.history[j];
-            const p2 = m.history[j + 1];
+          const newest = m.history[m.history.length - 1];
+          const oldest = m.history[0];
 
-            const ageSec = (now - p2.time) / 1000;
-            const progress = Math.max(0, Math.min(1, ageSec / m.trailLife)); // 0 = newest, 1 = oldest
-            const alpha = Math.pow(1.0 - progress, 1.4) * p2.brightness;
+          const trailAge = (now - newest.time) / 1000;
+          const fadeMultiplier = Math.max(0, 1.0 - trailAge / m.trailLife);
 
-            if (alpha <= 0.01) continue;
+          if (fadeMultiplier > 0.01) {
+            const gradPlasma = ctx.createLinearGradient(oldest.x, oldest.y, newest.x, newest.y);
+            gradPlasma.addColorStop(0, 'rgba(0, 255, 204, 0)');
+            gradPlasma.addColorStop(0.35, `rgba(93, 230, 255, ${(0.18 * fadeMultiplier).toFixed(3)})`);
+            gradPlasma.addColorStop(0.75, `rgba(140, 240, 255, ${(0.55 * fadeMultiplier).toFixed(3)})`);
+            gradPlasma.addColorStop(1, `rgba(255, 255, 255, ${(0.90 * fadeMultiplier).toFixed(3)})`);
 
-            const width = 0.6 + (1.0 - progress) * 2.8;
+            const gradCore = ctx.createLinearGradient(oldest.x, oldest.y, newest.x, newest.y);
+            gradCore.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            gradCore.addColorStop(0.4, `rgba(255, 255, 255, ${(0.28 * fadeMultiplier).toFixed(3)})`);
+            gradCore.addColorStop(0.85, `rgba(255, 255, 255, ${(0.88 * fadeMultiplier).toFixed(3)})`);
+            gradCore.addColorStop(1, `rgba(255, 255, 255, ${(1.0 * fadeMultiplier).toFixed(3)})`);
 
-            ctx.strokeStyle = `rgba(93, 230, 255, ${(alpha * 0.28).toFixed(3)})`;
-            ctx.lineWidth = width * 2.2;
+            // Pass 1: Outer glowing plasma sheath
+            ctx.strokeStyle = gradPlasma;
+            ctx.lineWidth = 4.2;
             ctx.lineCap = 'round';
             ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
+            ctx.moveTo(m.history[0].x, m.history[0].y);
+            for (let j = 1; j < m.history.length; j++) {
+              ctx.lineTo(m.history[j].x, m.history[j].y);
+            }
             ctx.stroke();
 
             // Pass 2: Inner incandescent white core
-            ctx.strokeStyle = `rgba(255, 255, 255, ${(alpha * 0.95).toFixed(3)})`;
-            ctx.lineWidth = width * 0.85;
+            ctx.strokeStyle = gradCore;
+            ctx.lineWidth = 1.6;
             ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
+            ctx.moveTo(m.history[0].x, m.history[0].y);
+            for (let j = 1; j < m.history.length; j++) {
+              ctx.lineTo(m.history[j].x, m.history[j].y);
+            }
             ctx.stroke();
           }
         }
 
-        // --- RENDER BLAZING METEOROID HEAD (While actively burning) ---
+        // --- RENDER BLAZING HYPERSONIC BOW-SHOCK HEAD (While actively burning) ---
         if (isBurning) {
           let headBrightness = 1.0;
-          if (m.age < 0.12) headBrightness = m.age / 0.12;
-          else if (m.age > m.burnDuration - 0.18) headBrightness = Math.max(0, (m.burnDuration - m.age) / 0.18);
+          if (m.age < 0.08) headBrightness = m.age / 0.08;
+          else if (m.age > m.burnDuration - 0.12) headBrightness = Math.max(0, (m.burnDuration - m.age) / 0.12);
 
-          // Intense pure white core
-          ctx.fillStyle = `rgba(255, 255, 255, ${headBrightness.toFixed(3)})`;
-          ctx.beginPath();
-          ctx.arc(m.x, m.y, 2.2, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.save();
+          ctx.translate(m.x, m.y);
+          ctx.rotate(m.angle);
 
-          // Shockwave bloom halo
+          // Hypersonic outer bow-shock glow
           ctx.fillStyle = `rgba(93, 230, 255, ${(headBrightness * 0.45).toFixed(3)})`;
           ctx.beginPath();
-          ctx.arc(m.x, m.y, 6.5, 0, Math.PI * 2);
+          ctx.ellipse(0, 0, 16, 5, 0, 0, Math.PI * 2);
           ctx.fill();
+
+          // Intense incandescence core (streamlined tear-drop)
+          ctx.fillStyle = `rgba(255, 255, 255, ${(headBrightness * 0.95).toFixed(3)})`;
+          ctx.beginPath();
+          ctx.ellipse(2, 0, 10, 2.2, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Blinding tip highlight
+          ctx.fillStyle = `rgba(255, 255, 255, ${headBrightness.toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(8, 0, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.restore();
         }
 
         // --- RENDER LINGERING ABLATION EMBERS ---
@@ -325,8 +346,8 @@ export function StarfieldCanvas() {
           const emb = m.embers[k];
           emb.x += emb.vx * dt;
           emb.y += emb.vy * dt;
-          emb.vx *= 0.92;
-          emb.vy *= 0.92;
+          emb.vx *= 0.88;
+          emb.vy *= 0.88;
           emb.life -= dt;
           if (emb.life <= 0) {
             m.embers.splice(k, 1);

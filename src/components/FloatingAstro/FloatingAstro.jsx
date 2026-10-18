@@ -36,11 +36,11 @@ const SECTOR_GUIDES = {
     ],
   },
   arcade: {
-    sector: 'SECTOR 0.5 // ORBITAL DEFENSE',
+    sector: 'SECTOR 0.5 // LUNAR ORBIT DEFENSE',
     icon: '🚀',
     messages: [
-      "Entering the Orbital Defense Perimeter! Check out this modern 60FPS space dogfight simulator!",
-      "The starfighter is currently in AI Auto-Pilot. Click or tap the game to take manual flight control!",
+      "Entering Lunar Orbit Defense! Notice the 3D Moon and orbiting asteroids glowing right behind the dogfight!",
+      "Click or tap the game to take manual flight controls, or press Space to fire lasers without scrolling!",
       "Collect yellow overdrive power-up orbs to unleash triple spread plasma weapons!",
     ],
   },

@@ -126,7 +126,7 @@ export function SpaceInvadersBanner() {
   const [isAutoPilot, setIsAutoPilot] = useState(true);
   const [soundOn, setSoundOn] = useState(true);
   const [overdriveActive, setOverdriveActive] = useState(false);
-  const [tacticalStatus, setTacticalStatus] = useState('ORBITAL DOGFIGHT ACTIVE // SECTOR 0.5');
+  const [tacticalStatus, setTacticalStatus] = useState('LUNAR ORBIT DEFENSE ACTIVE // SECTOR 0.5');
 
   // Mutable game simulation ref
   const gameRef = useRef({
@@ -185,7 +185,7 @@ export function SpaceInvadersBanner() {
     const next = !isAutoPilot;
     setIsAutoPilot(next);
     gameRef.current.isAutoPilot = next;
-    setTacticalStatus(next ? 'AI DOGFIGHT AUTO-PILOT ENGAGED' : 'PILOT MANUAL FLIGHT OVERRIDE');
+    setTacticalStatus(next ? 'LUNAR AI AUTO-PILOT ENGAGED' : 'PILOT MANUAL FLIGHT OVERRIDE // SPACE TO FIRE');
     if (!next) {
       modernAudio.init();
     }
@@ -202,7 +202,7 @@ export function SpaceInvadersBanner() {
     const isBossWave = waveNum % 3 === 0;
 
     if (isBossWave) {
-      // Spawn Heavy Dreadnought Boss
+      // Spawn Heavy Lunar Dreadnought Boss
       g.enemies.push({
         type: 'boss',
         x: g.width / 2,
@@ -218,9 +218,9 @@ export function SpaceInvadersBanner() {
         color: '#ff2a85',
         shieldAngle: 0,
       });
-      setTacticalStatus(`CRITICAL ALERT: DREADNOUGHT CLASS MOTHERSHIP ENCOUNTERED // WAVE ${waveNum}`);
+      setTacticalStatus(`CRITICAL ALERT: LUNAR DREADNOUGHT ENCOUNTERED // WAVE ${waveNum}`);
     } else {
-      // Spawn Squadron of modern fighters
+      // Spawn Squadron of lunar interceptor fighters
       const count = Math.min(14, 6 + waveNum * 2);
       for (let i = 0; i < count; i++) {
         const type = i % 3 === 0 ? 'cruiser' : 'interceptor';
@@ -240,7 +240,7 @@ export function SpaceInvadersBanner() {
           phase: Math.random() * Math.PI * 2,
         });
       }
-      setTacticalStatus(`SECTOR DEFENSE: WAVE ${waveNum} HOSTILES ENGAGED`);
+      setTacticalStatus(`LUNAR DEFENSE PERIMETER: WAVE ${waveNum} HOSTILES ENGAGED`);
     }
 
     // Spawn 2-3 drifting quantum asteroids
@@ -306,21 +306,30 @@ export function SpaceInvadersBanner() {
     handleResize();
     window.addEventListener('resize', handleResize);
 
-    // Keyboard handlers
+    // Keyboard handlers: Strictly prevent Space and Arrow keys from scrolling the webpage
     const handleKeyDown = (e) => {
-      if (['ArrowLeft', 'KeyA'].includes(e.code)) g.keys.left = true;
-      if (['ArrowRight', 'KeyD'].includes(e.code)) g.keys.right = true;
-      if (['ArrowUp', 'KeyW'].includes(e.code)) g.keys.up = true;
-      if (['ArrowDown', 'KeyS'].includes(e.code)) g.keys.down = true;
-      if (e.code === 'Space') {
+      // Space key for shooting: unconditionally prevent default page scroll
+      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32 || e.which === 32) {
         e.preventDefault();
+        e.stopPropagation();
         g.keys.shoot = true;
       }
+      if (['ArrowLeft', 'KeyA'].includes(e.code)) g.keys.left = true;
+      if (['ArrowRight', 'KeyD'].includes(e.code)) g.keys.right = true;
+      if (['ArrowUp', 'KeyW'].includes(e.code)) {
+        e.preventDefault();
+        g.keys.up = true;
+      }
+      if (['ArrowDown', 'KeyS'].includes(e.code)) {
+        e.preventDefault();
+        g.keys.down = true;
+      }
+
       // If user presses any control key, automatically engage manual mode!
       if (g.isAutoPilot && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS', 'Space'].includes(e.code)) {
         setIsAutoPilot(false);
         g.isAutoPilot = false;
-        setTacticalStatus('PILOT MANUAL FLIGHT OVERRIDE');
+        setTacticalStatus('PILOT MANUAL FLIGHT OVERRIDE // SPACE TO FIRE');
         modernAudio.init();
       }
     };
@@ -330,11 +339,15 @@ export function SpaceInvadersBanner() {
       if (['ArrowRight', 'KeyD'].includes(e.code)) g.keys.right = false;
       if (['ArrowUp', 'KeyW'].includes(e.code)) g.keys.up = false;
       if (['ArrowDown', 'KeyS'].includes(e.code)) g.keys.down = false;
-      if (e.code === 'Space') g.keys.shoot = false;
+      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32 || e.which === 32) {
+        e.preventDefault();
+        e.stopPropagation();
+        g.keys.shoot = false;
+      }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('keydown', handleKeyDown, { passive: false });
+    window.addEventListener('keyup', handleKeyUp, { passive: false });
 
     // Mouse / Touch handlers on canvas
     const handlePointerMove = (e) => {
@@ -348,10 +361,16 @@ export function SpaceInvadersBanner() {
     const handlePointerDown = (e) => {
       handlePointerMove(e);
       g.mouse.isDown = true;
+
+      // Unfocus any HTML button so pressing Space fires laser instead of re-clicking buttons or scrolling
+      if (document.activeElement && document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+
       if (g.isAutoPilot) {
         setIsAutoPilot(false);
         g.isAutoPilot = false;
-        setTacticalStatus('PILOT MANUAL FLIGHT OVERRIDE');
+        setTacticalStatus('PILOT MANUAL FLIGHT OVERRIDE // SPACE TO FIRE');
         modernAudio.init();
       }
     };
@@ -427,8 +446,9 @@ export function SpaceInvadersBanner() {
         g.screenShake = Math.max(0, g.screenShake - dt * 15);
       }
 
-      // 1. Dark Void Backdrop & Hyperspace Speed Streaks
-      ctx.fillStyle = '#030510';
+      // 1. Transparent Lunar Orbit Backdrop with Deep Space Warp Streaks
+      ctx.clearRect(0, 0, g.width, g.height);
+      ctx.fillStyle = 'rgba(3, 5, 16, 0.28)';
       ctx.fillRect(0, 0, g.width, g.height);
 
       // Starfield Speed Streaks
@@ -981,8 +1001,8 @@ export function SpaceInvadersBanner() {
     <section
       id="arcade"
       ref={containerRef}
-      className="modern-space-arcade relative w-full py-12 px-4 sm:px-6 lg:px-8 border-y border-[rgba(0,255,204,0.18)] bg-[#030510]/90 backdrop-blur-xl select-none"
-      aria-label="Orbital Defense Modern Space Arcade Game"
+      className="modern-space-arcade relative w-full py-12 px-4 sm:px-6 lg:px-8 border-y border-[rgba(0,255,204,0.18)] bg-[#030510]/35 backdrop-blur-[2px] select-none"
+      aria-label="Lunar Orbit Defense Modern Space Arcade Game"
     >
       <div className="max-w-5xl mx-auto flex flex-col items-center">
         {/* Top Header Console Bar */}
@@ -990,9 +1010,9 @@ export function SpaceInvadersBanner() {
           <div className="flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#00ffcc] animate-pulse shadow-[0_0_10px_#00ffcc]" />
             <h2 className="font-['Orbitron'] font-bold text-sm sm:text-base tracking-[0.2em] uppercase text-white flex items-center gap-2">
-              ORBITAL INTERCEPTOR COMBAT
+              LUNAR ORBIT INTERCEPTOR
               <span className="text-[10px] px-2 py-0.5 rounded bg-[#00ffcc]/10 border border-[#00ffcc]/30 text-[#00ffcc]">
-                MODERN ARCADE
+                LUNAR DEFENSE
               </span>
             </h2>
           </div>
@@ -1001,7 +1021,16 @@ export function SpaceInvadersBanner() {
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
-              onClick={toggleAutoPilot}
+              onClick={(e) => {
+                toggleAutoPilot();
+                e.currentTarget.blur();
+              }}
+              onKeyDown={(e) => {
+                if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
               className={`px-3 py-1.5 rounded text-xs font-['Oxanium'] font-semibold tracking-wider transition-all border ${
                 isAutoPilot
                   ? 'bg-[#00ffcc]/15 border-[#00ffcc]/50 text-[#00ffcc] hover:bg-[#00ffcc]/25 shadow-[0_0_12px_rgba(0,255,204,0.3)]'
@@ -1009,12 +1038,21 @@ export function SpaceInvadersBanner() {
               }`}
               title="Toggle between AI Auto-Pilot and Manual Flight Controls"
             >
-              {isAutoPilot ? '🤖 AI AUTO-PILOT [ACTIVE]' : '🎮 MANUAL FLIGHT [ACTIVE]'}
+              {isAutoPilot ? '🤖 LUNAR AI AUTO-PILOT [ACTIVE]' : '🎮 MANUAL FLIGHT [ACTIVE]'}
             </button>
 
             <button
               type="button"
-              onClick={toggleSound}
+              onClick={(e) => {
+                toggleSound();
+                e.currentTarget.blur();
+              }}
+              onKeyDown={(e) => {
+                if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
               className="px-2.5 py-1.5 rounded bg-white/5 border border-white/20 text-xs font-['Share_Tech_Mono'] text-white/80 hover:text-white hover:border-[#00ffcc] transition-all"
               title="Toggle Game Sound FX"
               aria-label="Toggle Game Sound"
@@ -1027,7 +1065,7 @@ export function SpaceInvadersBanner() {
         {/* Tactical Telemetry Ribbon */}
         <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 px-2 font-['Share_Tech_Mono'] text-xs text-white/80">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-white/5 border border-white/10">
-            <span className="text-white/40">SHIELDS:</span>
+            <span className="text-white/40">LUNAR SHIELD:</span>
             <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-[#00ffcc] to-[#5de6ff] transition-all duration-300"
@@ -1048,30 +1086,31 @@ export function SpaceInvadersBanner() {
           </div>
 
           <div className="flex items-center justify-between px-3 py-1.5 rounded bg-white/5 border border-white/10">
-            <span className="text-white/40">WAVE:</span>
-            <span className="text-[#ff2a85] font-bold">SECTOR {wave}</span>
+            <span className="text-white/40">LUNAR ORBIT:</span>
+            <span className="text-[#ff2a85] font-bold">WAVE {wave}</span>
           </div>
         </div>
 
-        {/* 60FPS High-Tech Canvas Container */}
-        <div className="relative w-full aspect-[800/420] max-h-[460px] rounded-xl overflow-hidden border border-[#00ffcc]/25 shadow-[0_0_35px_rgba(0,255,204,0.15)] bg-[#030510]">
+        {/* 60FPS High-Tech Canvas Container - Transparent Glass reveals 3D Moon and asteroids */}
+        <div className="relative w-full aspect-[800/420] max-h-[460px] rounded-xl overflow-hidden border border-[#00ffcc]/35 shadow-[0_0_40px_rgba(0,255,204,0.18)] bg-[rgba(6,10,26,0.35)] backdrop-blur-[2px]">
           <canvas
             ref={canvasRef}
-            className="w-full h-full block cursor-crosshair touch-none"
+            tabIndex={0}
+            className="w-full h-full block cursor-crosshair touch-none focus:outline-none"
             aria-label="Interactive 60FPS Space Dogfight Game"
           />
 
           {/* Overdrive Notification Ribbon */}
           {overdriveActive && (
             <div className="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#ffaa00]/20 border border-[#ffaa00] text-[#ffaa00] font-['Orbitron'] text-xs font-bold tracking-widest animate-pulse shadow-[0_0_20px_#ffaa00]">
-              ⚡ TRIPLE OVERDRIVE WEAPONS ACTIVE ⚡
+              ⚡ LUNAR OVERDRIVE WEAPONS ACTIVE ⚡
             </div>
           )}
 
           {/* Status Subtitle Overlay */}
           <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between pointer-events-none text-[11px] font-['Share_Tech_Mono'] text-white/50">
             <span>{tacticalStatus}</span>
-            <span className="hidden sm:inline">CONTROLS: DRAG / WASD / ARROWS • SPACE TO FIRE</span>
+            <span className="hidden sm:inline">CONTROLS: DRAG / WASD / ARROWS • SPACE TO FIRE (NO SCROLL)</span>
           </div>
         </div>
       </div>

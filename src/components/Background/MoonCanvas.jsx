@@ -425,9 +425,9 @@ export function MoonCanvas() {
       const viewH = window.innerHeight;
 
       // Visibility calculation: Fades in as user leaves Sector 00 (Hero)
-      // Fully visible from Galaxy (Sector 01) downwards
-      const heroThreshold = viewH * 0.55;
-      const fadeEnd = viewH * 1.15;
+      // Fully visible by the time user enters Sector 0.5 (Lunar Arcade)
+      const heroThreshold = viewH * 0.20;
+      const fadeEnd = viewH * 0.65;
       let opacity = 0;
 
       if (currentScroll >= heroThreshold) {

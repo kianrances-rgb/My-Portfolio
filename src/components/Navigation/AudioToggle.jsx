@@ -27,10 +27,10 @@ export function AudioToggle({ className = '' }) {
       type="button"
       id="audio-toggle"
       onClick={handleToggle}
-      className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300 font-mono text-xs tracking-wider select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00ffcc] border ${
+      className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300 font-mono text-[11px] tracking-wider select-none focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-400 border cursor-pointer ${
         isPlaying
-          ? 'bg-[#00ffcc]/10 border-[#00ffcc]/60 text-[#00ffcc] shadow-[0_0_15px_rgba(0,255,204,0.35)] hover:shadow-[0_0_22px_rgba(0,255,204,0.55)]'
-          : 'bg-[#0f142d]/75 border-[rgba(140,180,255,0.2)] text-slate-400 hover:border-[#00ffcc]/40 hover:text-slate-200'
+          ? 'bg-cyan-500/10 border-cyan-400/40 text-cyan-300 shadow-[0_0_15px_rgba(0,255,204,0.25)] hover:shadow-[0_0_22px_rgba(0,255,204,0.4)]'
+          : 'bg-white/[0.04] border-white/10 text-white/50 hover:border-white/25 hover:text-white'
       } ${className}`}
       aria-label="Cosmic Audio Engine - Procedural Space Drone"
       title="Cosmic Audio Engine - Procedural Space Drone"

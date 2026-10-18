@@ -2,22 +2,29 @@ import React from 'react';
 
 /**
  * SkillPill Component
- * Sleek cyber skill pill displaying technical skill name and proficiency level badge.
- * Features neon glowing border and smooth hover micro-interactions.
+ * Sleek galactic telemetry skill chip with minimalist active pulse and subtle micro-interaction.
  *
  * @param {Object} props
  * @param {string} props.name - Skill label (e.g., 'React.js & React Hooks')
- * @param {string} [props.level='INTERMEDIATE'] - Proficiency tier (default: 'INTERMEDIATE')
  */
-export function SkillPill({ name, level = 'INTERMEDIATE' }) {
+export function SkillPill({ name }) {
   return (
-    <div className="skill-pill group flex items-center justify-between gap-2 px-3 py-2 rounded bg-[#0e122a]/75 border border-[#8cb4ff]/15 hover:border-cyan-400/50 hover:bg-[#191e41]/85 hover:shadow-[0_0_12px_rgba(0,255,204,0.25)] hover:scale-[1.02] transition-all duration-200 cursor-default">
-      <span className="skill-name font-primary font-semibold text-sm tracking-wide text-[#f4f8ff] group-hover:text-cyan-300 transition-colors">
-        {name}
-      </span>
-      <span className="skill-level font-mono text-[0.66rem] font-bold tracking-widest text-[#5de6ff] uppercase px-1.5 py-0.5 rounded bg-cyan-950/40 border border-cyan-500/20 group-hover:border-cyan-400/40 group-hover:shadow-[0_0_8px_rgba(0,255,204,0.3)] transition-all flex-shrink-0">
-        {level}
-      </span>
+    <div className="group flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white/[0.025] hover:bg-white/[0.07] border border-white/[0.06] hover:border-purple-400/40 hover:shadow-[0_4px_20px_rgba(168,85,247,0.12)] transition-all duration-300 cursor-default">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <span
+          className="w-1.5 h-1.5 rounded-full bg-purple-400/60 group-hover:bg-cyan-300 group-hover:shadow-[0_0_8px_rgba(103,232,249,0.9)] transition-all flex-shrink-0"
+          aria-hidden="true"
+        />
+        <span className="font-grotesk text-sm font-medium tracking-wide text-white/85 group-hover:text-white truncate transition-colors">
+          {name}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-1 pl-2 flex-shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">
+        <span className="w-1 h-2 rounded-sm bg-purple-400/40 group-hover:bg-cyan-400" />
+        <span className="w-1 h-2.5 rounded-sm bg-purple-400/60 group-hover:bg-cyan-400" />
+        <span className="w-1 h-3 rounded-sm bg-purple-400/80 group-hover:bg-cyan-400" />
+      </div>
     </div>
   );
 }

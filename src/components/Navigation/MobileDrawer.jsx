@@ -1,17 +1,18 @@
 import React, { useEffect } from 'react';
+import { ArrowUpRight, X } from 'lucide-react';
 import { navItems, personal } from '../../data/portfolioData';
 
 /**
  * MobileDrawer Component
- * Slide-in cosmic navigation drawer for tablet and mobile viewports (< 1024px).
+ * Modern glass navigation drawer for mobile and tablet viewports.
  *
- * @param {boolean} isOpen - Whether drawer is visible
- * @param {() => void} onClose - Callback to close drawer
- * @param {string} activeSection - Current active section id ('intro', 'galaxy', etc.)
- * @param {(sectionId: string) => void} [onNavigate] - Navigation handler callback
+ * @param {Object} props
+ * @param {boolean} props.isOpen - Whether drawer is visible
+ * @param {() => void} props.onClose - Callback to close drawer
+ * @param {string} props.activeSection - Current active section id
+ * @param {(sectionId: string) => void} [props.onNavigate] - Navigation handler callback
  */
 export function MobileDrawer({ isOpen, onClose, activeSection = 'intro', onNavigate }) {
-  // Prevent background scrolling when drawer is open
   useEffect(() => {
     if (isOpen) {
       const originalOverflow = document.body.style.overflow;
@@ -22,7 +23,6 @@ export function MobileDrawer({ isOpen, onClose, activeSection = 'intro', onNavig
     }
   }, [isOpen]);
 
-  // Keyboard accessibility: Escape key closes drawer
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && isOpen) {
@@ -59,47 +59,43 @@ export function MobileDrawer({ isOpen, onClose, activeSection = 'intro', onNavig
       role="dialog"
       aria-modal="true"
       aria-hidden={!isOpen}
-      aria-label="Sector Telemetry Navigation"
+      aria-label="Sector Navigation"
     >
-      {/* Semi-transparent Backdrop with click-to-dismiss */}
+      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-[#03040c]/80 backdrop-blur-md transition-opacity duration-300 cursor-pointer"
+        className="absolute inset-0 bg-[#03040c]/85 backdrop-blur-xl transition-opacity duration-300 cursor-pointer"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Slide-in Panel with glowing border */}
+      {/* Slide-in Glass Panel */}
       <aside
-        className={`absolute top-0 right-0 h-full w-[82%] max-w-[340px] bg-[#080c1c]/95 border-l border-cyan-500/30 shadow-[-10px_0_40px_rgba(0,0,0,0.85),0_0_35px_rgba(0,255,204,0.15)] flex flex-col justify-between p-6 transition-transform duration-300 ease-out z-[9999] ${
+        className={`absolute top-0 right-0 h-full w-[85%] max-w-[340px] bg-[#060814]/95 border-l border-white/10 shadow-[-20px_0_60px_rgba(0,0,0,0.95)] flex flex-col justify-between p-6 sm:p-8 transition-transform duration-300 ease-out z-[9999] backdrop-blur-3xl ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        {/* Top Content (Header + Links) */}
-        <div className="flex flex-col gap-6">
-          {/* Cyber Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-cyan-500/20">
+        <div className="flex flex-col gap-8">
+          {/* Header */}
+          <div className="flex items-center justify-between pb-4 border-b border-white/10">
             <div className="flex items-center gap-2">
-              <span className="text-lg select-none" role="img" aria-label="Astronaut">
-                👨‍🚀
-              </span>
-              <h2 className="font-orbitron font-bold text-sm tracking-[0.16em] text-[#00ffcc] uppercase select-none drop-shadow-[0_0_8px_rgba(0,255,204,0.5)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,255,204,0.8)]" />
+              <h2 className="font-mono text-xs tracking-[0.2em] text-white/80 uppercase font-semibold">
                 NAVIGATION
               </h2>
             </div>
-            {/* Close Button (✕) */}
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 rounded-full border border-cyan-500/20 hover:border-red-500 hover:text-red-400 text-slate-300 transition-all duration-200 flex items-center justify-center font-mono text-sm hover:shadow-[0_0_12px_rgba(255,51,85,0.5)] focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-              aria-label="Close Navigation Drawer"
+              className="w-8 h-8 rounded-full border border-white/10 hover:border-white/30 text-white/60 hover:text-white transition-all flex items-center justify-center cursor-pointer"
+              aria-label="Close Navigation"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Sector Nav List */}
-          <nav aria-label="Mobile Sector Telemetry Links">
-            <ul className="flex flex-col gap-2.5">
+          {/* Navigation Links */}
+          <nav aria-label="Mobile Navigation">
+            <ul className="flex flex-col gap-2">
               {navItems.map((item) => {
                 const isActive = activeSection === item.id;
                 return (
@@ -107,30 +103,24 @@ export function MobileDrawer({ isOpen, onClose, activeSection = 'intro', onNavig
                     <a
                       href={`#${item.id}`}
                       onClick={(e) => handleItemClick(e, item.id)}
-                      className={`group flex items-center justify-between px-4 py-3 rounded-md transition-all duration-200 font-oxanium text-sm font-semibold tracking-wider select-none ${
+                      className={`group flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-300 font-grotesk text-sm font-medium tracking-wide ${
                         isActive
-                          ? 'bg-cyan-500/15 border border-[#00ffcc]/60 text-white shadow-[0_0_18px_rgba(0,255,204,0.3)] translate-x-1'
-                          : 'border border-transparent text-slate-300 hover:border-cyan-500/20 hover:bg-white/5 hover:text-white hover:translate-x-1'
+                          ? 'bg-white/10 border border-white/20 text-white shadow-[0_0_20px_rgba(255,255,255,0.06)]'
+                          : 'border border-transparent text-white/60 hover:text-white hover:bg-white/[0.04]'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        {/* Active Indicator Line */}
-                        {isActive ? (
-                          <span
-                            className="w-1.5 h-4 bg-[#00ffcc] rounded-full shadow-[0_0_8px_#00ffcc]"
-                            aria-hidden="true"
-                          />
-                        ) : (
-                          <span
-                            className="w-1.5 h-4 bg-transparent rounded-full"
-                            aria-hidden="true"
-                          />
-                        )}
-                        <span className="tracking-widest">{item.label}</span>
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full transition-all ${
+                            isActive
+                              ? 'bg-cyan-400 shadow-[0_0_8px_rgba(0,255,204,0.8)]'
+                              : 'bg-transparent'
+                          }`}
+                          aria-hidden="true"
+                        />
+                        <span>{item.label}</span>
                       </div>
-                      <span className="text-xs text-cyan-400/60 group-hover:text-cyan-300 transition-colors">
-                        →
-                      </span>
+                      <ArrowUpRight className="w-4 h-4 text-white/30 group-hover:text-cyan-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
                     </a>
                   </li>
                 );
@@ -139,10 +129,10 @@ export function MobileDrawer({ isOpen, onClose, activeSection = 'intro', onNavig
           </nav>
         </div>
 
-        {/* Drawer Footer with coordinate tag */}
-        <div className="pt-4 border-t border-cyan-500/15 text-center">
-          <div className="font-mono text-[11px] text-slate-500 tracking-[0.2em] uppercase select-none">
-            {personal.coordinateTag || 'SOL-3 - DEV - 2026'}
+        {/* Footer */}
+        <div className="pt-4 border-t border-white/10 text-center">
+          <div className="font-mono text-[10px] text-white/40 tracking-[0.2em] uppercase">
+            {personal.coordinateTag || 'SOL-3 // DEV // 2026'}
           </div>
         </div>
       </aside>

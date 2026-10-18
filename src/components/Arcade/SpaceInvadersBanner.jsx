@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Bot, Gamepad2, Volume2, VolumeX, Zap } from 'lucide-react';
 
 /**
  * Modern Space Interceptor Combat Arcade
@@ -1001,24 +1002,24 @@ export function SpaceInvadersBanner() {
     <section
       id="arcade"
       ref={containerRef}
-      className="modern-space-arcade relative w-full py-12 px-4 sm:px-6 lg:px-8 border-y border-[rgba(0,255,204,0.18)] bg-[#030510]/35 backdrop-blur-[2px] select-none"
-      aria-label="Lunar Orbit Defense Modern Space Arcade Game"
+      className="relative w-full py-20 px-4 sm:px-6 lg:px-8 border-y border-white/10 bg-[#030510]/35 backdrop-blur-[2px] select-none"
+      aria-label="Lunar Orbit Defense Space Arcade"
     >
       <div className="max-w-5xl mx-auto flex flex-col items-center">
         {/* Top Header Console Bar */}
-        <div className="w-full flex flex-wrap items-center justify-between gap-3 mb-4 px-2">
-          <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#00ffcc] animate-pulse shadow-[0_0_10px_#00ffcc]" />
-            <h2 className="font-['Orbitron'] font-bold text-sm sm:text-base tracking-[0.2em] uppercase text-white flex items-center gap-2">
-              LUNAR ORBIT INTERCEPTOR
-              <span className="text-[10px] px-2 py-0.5 rounded bg-[#00ffcc]/10 border border-[#00ffcc]/30 text-[#00ffcc]">
+        <div className="w-full flex flex-wrap items-center justify-between gap-4 mb-6 px-1">
+          <div className="flex items-center gap-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_rgba(0,255,204,0.8)]" />
+            <h2 className="font-grotesk font-bold text-sm sm:text-base tracking-wider uppercase text-white flex items-center gap-2.5">
+              <span>LUNAR ORBIT INTERCEPTOR</span>
+              <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-400/30 text-cyan-300 font-mono tracking-widest">
                 LUNAR DEFENSE
               </span>
             </h2>
           </div>
 
           {/* Interactive Controls & Audio Bar */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={(e) => {
@@ -1031,14 +1032,24 @@ export function SpaceInvadersBanner() {
                   e.stopPropagation();
                 }
               }}
-              className={`px-3 py-1.5 rounded text-xs font-['Oxanium'] font-semibold tracking-wider transition-all border ${
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-grotesk font-medium tracking-wide transition-all border cursor-pointer ${
                 isAutoPilot
-                  ? 'bg-[#00ffcc]/15 border-[#00ffcc]/50 text-[#00ffcc] hover:bg-[#00ffcc]/25 shadow-[0_0_12px_rgba(0,255,204,0.3)]'
-                  : 'bg-[#ff2a85]/15 border-[#ff2a85]/50 text-[#ff2a85] hover:bg-[#ff2a85]/25 shadow-[0_0_12px_rgba(255,42,133,0.3)]'
+                  ? 'bg-cyan-500/15 border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/25 shadow-[0_0_15px_rgba(0,255,204,0.2)]'
+                  : 'bg-rose-500/15 border-rose-400/40 text-rose-200 hover:bg-rose-500/25 shadow-[0_0_15px_rgba(244,63,94,0.2)]'
               }`}
-              title="Toggle between AI Auto-Pilot and Manual Flight Controls"
+              title="Toggle AI Auto-Pilot or Manual Controls"
             >
-              {isAutoPilot ? '🤖 LUNAR AI AUTO-PILOT [ACTIVE]' : '🎮 MANUAL FLIGHT [ACTIVE]'}
+              {isAutoPilot ? (
+                <>
+                  <Bot className="w-3.5 h-3.5 text-cyan-300" />
+                  <span>AI AUTO-PILOT</span>
+                </>
+              ) : (
+                <>
+                  <Gamepad2 className="w-3.5 h-3.5 text-rose-300" />
+                  <span>MANUAL FLIGHT</span>
+                </>
+              )}
             </button>
 
             <button
@@ -1053,64 +1064,75 @@ export function SpaceInvadersBanner() {
                   e.stopPropagation();
                 }
               }}
-              className="px-2.5 py-1.5 rounded bg-white/5 border border-white/20 text-xs font-['Share_Tech_Mono'] text-white/80 hover:text-white hover:border-[#00ffcc] transition-all"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-white/70 hover:text-white hover:border-white/25 transition-all cursor-pointer"
               title="Toggle Game Sound FX"
               aria-label="Toggle Game Sound"
             >
-              {soundOn ? '🔊 AUDIO ON' : '🔇 AUDIO OFF'}
+              {soundOn ? (
+                <>
+                  <Volume2 className="w-3.5 h-3.5 text-cyan-300" />
+                  <span>AUDIO ON</span>
+                </>
+              ) : (
+                <>
+                  <VolumeX className="w-3.5 h-3.5 text-white/40" />
+                  <span>AUDIO MUTED</span>
+                </>
+              )}
             </button>
           </div>
         </div>
 
         {/* Tactical Telemetry Ribbon */}
-        <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 px-2 font-['Share_Tech_Mono'] text-xs text-white/80">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-white/5 border border-white/10">
-            <span className="text-white/40">LUNAR SHIELD:</span>
-            <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+        <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 px-1 font-mono text-xs text-white/70">
+          <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10">
+            <span className="text-white/40 text-[11px]">SHIELD:</span>
+            <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-[#00ffcc] to-[#5de6ff] transition-all duration-300"
+                className="h-full bg-gradient-to-r from-cyan-400 to-blue-400 transition-all duration-300"
                 style={{ width: `${shield}%` }}
               />
             </div>
-            <span className="text-[#00ffcc] font-bold">{shield}%</span>
+            <span className="text-cyan-300 font-bold">{shield}%</span>
           </div>
 
-          <div className="flex items-center justify-between px-3 py-1.5 rounded bg-white/5 border border-white/10">
-            <span className="text-white/40">SCORE:</span>
+          <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10">
+            <span className="text-white/40 text-[11px]">SCORE:</span>
             <span className="text-white font-bold">{score.toLocaleString()}</span>
           </div>
 
-          <div className="flex items-center justify-between px-3 py-1.5 rounded bg-white/5 border border-white/10">
-            <span className="text-white/40">HIGH SCORE:</span>
-            <span className="text-[#ffaa00] font-bold">{highScore.toLocaleString()}</span>
+          <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10">
+            <span className="text-white/40 text-[11px]">HIGH SCORE:</span>
+            <span className="text-amber-300 font-bold">{highScore.toLocaleString()}</span>
           </div>
 
-          <div className="flex items-center justify-between px-3 py-1.5 rounded bg-white/5 border border-white/10">
-            <span className="text-white/40">LUNAR ORBIT:</span>
-            <span className="text-[#ff2a85] font-bold">WAVE {wave}</span>
+          <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10">
+            <span className="text-white/40 text-[11px]">WAVE:</span>
+            <span className="text-rose-400 font-bold">SECTOR {wave}</span>
           </div>
         </div>
 
-        {/* 60FPS High-Tech Canvas Container - Transparent Glass reveals 3D Moon and asteroids */}
-        <div className="relative w-full aspect-[800/420] max-h-[460px] rounded-xl overflow-hidden border border-[#00ffcc]/35 shadow-[0_0_40px_rgba(0,255,204,0.18)] bg-[rgba(6,10,26,0.35)] backdrop-blur-[2px]">
+        {/* 60FPS High-Tech Canvas Container */}
+        <div className="relative w-full aspect-[800/420] max-h-[460px] rounded-2xl overflow-hidden border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.85)] bg-[rgba(6,10,26,0.35)] backdrop-blur-[2px]">
           <canvas
             ref={canvasRef}
             tabIndex={0}
             className="w-full h-full block cursor-crosshair touch-none focus:outline-none"
-            aria-label="Interactive 60FPS Space Dogfight Game"
+            aria-label="Interactive Space Combat Game"
           />
 
           {/* Overdrive Notification Ribbon */}
           {overdriveActive && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#ffaa00]/20 border border-[#ffaa00] text-[#ffaa00] font-['Orbitron'] text-xs font-bold tracking-widest animate-pulse shadow-[0_0_20px_#ffaa00]">
-              ⚡ LUNAR OVERDRIVE WEAPONS ACTIVE ⚡
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/80 text-amber-300 font-mono text-xs font-bold tracking-widest animate-pulse shadow-[0_0_20px_rgba(245,158,11,0.5)]">
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <span>OVERDRIVE WEAPONS ACTIVE</span>
             </div>
           )}
 
           {/* Status Subtitle Overlay */}
-          <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between pointer-events-none text-[11px] font-['Share_Tech_Mono'] text-white/50">
+          <div className="absolute bottom-2.5 left-4 right-4 flex items-center justify-between pointer-events-none text-[11px] font-mono text-white/40">
             <span>{tacticalStatus}</span>
-            <span className="hidden sm:inline">CONTROLS: DRAG / WASD / ARROWS • SPACE TO FIRE (NO SCROLL)</span>
+            <span className="hidden sm:inline">CONTROLS: DRAG / WASD / ARROWS &bull; SPACE TO FIRE</span>
           </div>
         </div>
       </div>

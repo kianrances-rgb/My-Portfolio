@@ -5,12 +5,7 @@ import { MessageForm } from './MessageForm';
 
 /**
  * ContactPanel Component
- * Sector 03 // Subspace Transceiver: Direct Contact & Subspace Message Console
- * Features:
- * - Ambient atmospheric backdrop glow
- * - 3-column grid of direct communication channels (Email, GitHub, Facebook)
- * - Interactive Wandering Astronaut Mascot (360° somersaults, speech greetings, sound effects)
- * - Subspace Transmission Console Message Composer with direct Gmail dispatch
+ * Direct communication channels and interactive message composer terminal.
  */
 export function ContactPanel() {
   const channels = contact?.channels || [];
@@ -18,46 +13,47 @@ export function ContactPanel() {
   return (
     <section
       id="contact"
-      className="cosmic-panel contact-panel relative min-h-screen w-full py-24 px-4 sm:px-8 lg:px-16 overflow-hidden"
+      className="relative min-h-screen w-full py-32 md:py-48 px-4 sm:px-8 lg:px-16 overflow-hidden"
       aria-labelledby="contact-heading"
     >
-      {/* Atmosphere backdrop glow */}
+      {/* 1. Atmospheric subtle backdrop gradient */}
       <div
-        className="panel-atmosphere contact-backdrop absolute inset-0 pointer-events-none z-[1]"
+        className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_60%_50%_at_50%_30%,rgba(0,255,204,0.05),transparent_70%)]"
         aria-hidden="true"
       />
 
-      {/* Panel Content Container */}
-      <div className="panel-container relative max-w-7xl mx-auto w-full z-[2]">
-        {/* Section Header */}
-        <header className="panel-header text-center mb-16 relative">
-          <div className="panel-badge inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#0a0f23]/80 border border-cyan-500/30 text-xs tracking-[0.16em] mb-4 backdrop-blur-md shadow-[0_0_15px_rgba(0,255,204,0.15)]">
-            <span className="sector-code font-mono text-cyan-400 font-semibold">
-              DIRECT CONTACT
-            </span>
+      {/* 2. Panel Container */}
+      <div className="relative max-w-7xl mx-auto w-full z-10">
+        {/* Section Header with Macro-Whitespace */}
+        <header className="text-center mb-16 relative">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/10 ring-1 ring-white/5 text-[11px] font-mono tracking-[0.2em] text-white/70 mb-6 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,255,204,0.8)]" />
+            <span>DIRECT CONNECT</span>
+            <span className="text-white/20">/</span>
+            <span className="text-white/50">SUBSPACE LINK</span>
           </div>
 
           <h2
             id="contact-heading"
-            className="panel-title font-display text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-[0.16em] uppercase text-white mb-3 text-shadow-[0_4px_18px_rgba(0,0,0,0.9)] drop-shadow-[0_0_25px_rgba(93,230,255,0.25)]"
+            className="font-grotesk text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-4"
           >
             CONTACT
           </h2>
 
-          <p className="panel-subtitle font-body text-base sm:text-lg font-medium tracking-[0.03em] text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Transmit your message directly across the cosmic spectrum. Click any terminal below to connect immediately.
+          <p className="font-outfit text-base sm:text-lg font-light text-white/60 max-w-2xl mx-auto leading-relaxed">
+            Transmit your communication directly across the cosmic spectrum. Connect instantly via any terminal below.
           </p>
         </header>
 
-        {/* 3-Column Contact Channels Grid (Email, GitHub, Facebook) */}
-        <div className="contact-channels-grid">
+        {/* 3-Column Contact Channels Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {channels.map((ch) => (
             <ChannelCard key={ch.type} channel={ch} />
           ))}
         </div>
 
         {/* Subspace Transmission Console Wrapper */}
-        <div className="transmission-console-wrapper relative">
+        <div className="relative max-w-4xl mx-auto w-full">
           <MessageForm />
         </div>
       </div>

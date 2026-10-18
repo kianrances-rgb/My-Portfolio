@@ -28,57 +28,51 @@ import { useCosmicAudio } from '../../hooks/useCosmicAudio';
 const SECTOR_GUIDES = {
   intro: {
     sector: 'SINGULARITY',
-    icon: '🕳️',
     messages: [
-      "You're at Singularity! Driven by a real-time relativistic WebGL black hole engine.",
-      "Look below: Kian's name is in pure white, with its upper edge disintegrating into stardust!",
-      "The powdery white dust is physically pulled into the black hole's singularity core.",
+      "You're at Singularity, driven by a real-time relativistic WebGL black hole engine.",
+      "Notice Kian's title in pure white, with its upper edge disintegrating into cosmic stardust.",
+      "The white particle dust is physically pulled into the black hole's singularity core.",
     ],
   },
   arcade: {
     sector: 'LUNAR ORBIT DEFENSE',
-    icon: '🚀',
     messages: [
-      "Entering Lunar Orbit Defense! Notice the 3D Moon and orbiting asteroids glowing right behind the dogfight!",
-      "Click or tap the game to take manual flight controls, or press Space to fire lasers without scrolling!",
-      "Collect yellow overdrive power-up orbs to unleash triple spread plasma weapons!",
+      "Entering Lunar Orbit Defense. The photorealistic 3D Moon and asteroid field anchor the dogfight.",
+      "Interact with the viewport to take manual flight control, or press Space to fire lasers without scrolling.",
+      "Collect plasma power-up orbs to deploy multi-vector spread armaments.",
     ],
   },
   galaxy: {
     sector: 'EDUCATION',
-    icon: '🌙',
     messages: [
-      "Entering the Education section! Look to the right: a photorealistic 3D Moon with real-time crater depth!",
-      "Click or touch and drag directly on the 3D Moon to spin it in zero-g with realistic momentum!",
-      "Notice the asteroid rocks tumbling in gravitational orbit around the lunar surface.",
+      "Entering the Education section. To the right is a photorealistic 3D Moon with real-time crater relief.",
+      "Drag directly on the 3D Moon to spin it in zero-g with realistic physical momentum.",
+      "Notice the orbital debris circling in gravitational equilibrium around the lunar surface.",
       "Explore Kian's academic foundation across ICCT Colleges and DAEHAN ICT Strand in the orbital cards.",
     ],
   },
   supernova: {
     sector: 'SKILLS',
-    icon: '⚡',
     messages: [
-      "You're inside the Skills section! Notice how the 3D Moon shifts angle under solar radiation.",
-      "You can click and drag the 3D Moon at any time to inspect its day/night terminator crater shadows!",
+      "Inside the Skills section. The 3D Moon dynamically shifts angle under solar radiation.",
+      "Drag the 3D Moon at any time to inspect its day/night terminator crater shadows.",
       "Here are Kian's technical skills forged across Languages, Frontend, Backend, and Systems.",
-      "Use the interactive filter bar above to filter by your preferred technical energy cluster!",
+      "Use the segmented filter bar above to isolate technical clusters.",
     ],
   },
   contact: {
     sector: 'CONTACT',
-    icon: '📡',
     messages: [
-      "Arrived at Contact! Ready to build or collaborate? Transmit a signal!",
-      "Click 'TRANSMIT VIA EMAIL' or use the Gmail console to dispatch directly to Kian.",
-      "You can also explore his GitHub repositories or connect directly on social channels!",
+      "Arrived at Contact. Ready to build or collaborate? Transmit a signal.",
+      "Select any communication terminal or use the direct composer to dispatch an email to Kian.",
+      "You can also explore his GitHub repositories or connect directly on social channels.",
     ],
   },
   footer: {
     sector: 'MISSION COMPLETE',
-    icon: '✨',
     messages: [
-      "Mission Complete! You've traversed Kian Rances Cagadas's cosmic portfolio.",
-      "Human-crafted computational excellence in the vast cosmic expanse. Have an interstellar day! 🚀",
+      "Mission Complete. You have traversed Kian Rances Cagadas's cosmic portfolio.",
+      "Human-crafted computational excellence in the vast cosmic expanse.",
     ],
   },
 };
@@ -473,30 +467,30 @@ export function FloatingAstro() {
       {!isDocked && (
         <div
           id="floating-speech-bubble"
-          className={`floating-speech-bubble max-w-[290px] sm:max-w-[340px] flex-col !items-start ${
+          className={`floating-speech-bubble max-w-[290px] sm:max-w-[340px] flex-col !items-start p-3.5 rounded-2xl bg-[#060814]/90 border border-white/10 backdrop-blur-2xl shadow-[0_16px_40px_rgba(0,0,0,0.85)] ring-1 ring-white/5 ${
             isRightSide ? 'bubble-align-right' : 'bubble-align-left'
           } ${isPopping ? 'bubble-pop' : ''}`}
           aria-live="polite"
         >
           {/* Sector Badge Tag */}
-          <div className="flex items-center justify-between w-full pb-1 border-b border-white/10 text-[10px] tracking-widest text-[#00ffcc] font-['Orbitron'] font-bold">
+          <div className="flex items-center justify-between w-full pb-2 mb-2 border-b border-white/10 text-[10px] font-mono tracking-[0.2em] text-cyan-400 font-medium">
             <span className="flex items-center gap-1.5">
-              <span>{activeGuide.icon}</span>
-              <span>{activeGuide.sector}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,255,204,0.8)]" />
+              <span className="text-white/80">{activeGuide.sector}</span>
             </span>
             <button
               type="button"
-              className="astro-dock-btn !m-0 !w-4 !h-4"
+              className="w-4 h-4 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors text-xs"
               onClick={toggleDock}
-              title="Dock Astronaut to corner"
-              aria-label="Dock Astronaut to corner"
+              title="Dock companion"
+              aria-label="Dock companion"
             >
               ✕
             </button>
           </div>
 
           {/* Contextual Tour Explanation */}
-          <p className="bubble-text text-left font-['Share_Tech_Mono'] text-xs text-white/95 leading-relaxed pt-1 whitespace-normal">
+          <p className="bubble-text text-left font-outfit text-xs text-white/90 leading-relaxed pt-0.5 whitespace-normal">
             {currentMsg}
           </p>
         </div>
@@ -506,12 +500,13 @@ export function FloatingAstro() {
       {isDocked && (
         <button
           type="button"
-          className="docked-astro-pill"
+          className="docked-astro-pill px-3 py-1.5 rounded-full bg-[#060814]/90 border border-white/10 backdrop-blur-xl text-[11px] font-mono tracking-widest text-white/80 flex items-center gap-2 hover:border-cyan-400/40 hover:text-white transition-all shadow-[0_8px_25px_rgba(0,0,0,0.8)]"
           onClick={toggleDock}
-          title="Resume Zero-G Portfolio Tour"
-          aria-label="Resume Zero-G Tour"
+          title="Resume Tour"
+          aria-label="Resume Tour"
         >
-          <span className="pulse-dot" /> 👨‍🚀 ASTRONAUT KIAN [TOUR ACTIVE]
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,255,204,0.8)] animate-pulse" />
+          <span>TOUR ACTIVE</span>
         </button>
       )}
 

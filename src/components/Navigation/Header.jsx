@@ -62,10 +62,10 @@ export function Header({ activeSection: activeSectionProp, onSectionChange, onNa
   return (
     <>
       <header
-        className="fixed top-0 left-0 w-full z-40 h-16 md:h-20 backdrop-blur-md bg-[#030308]/85 border-b border-cyan-500/20 shadow-[0_4px_25px_rgba(0,0,0,0.7)] transition-all duration-300"
+        className="fixed top-4 sm:top-6 inset-x-0 mx-auto w-[92%] max-w-5xl z-50 rounded-full px-4 sm:px-6 py-2.5 backdrop-blur-2xl bg-[#060814]/85 border border-white/10 shadow-[0_16px_50px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,255,255,0.15)] ring-1 ring-white/5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
         role="banner"
       >
-        <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+        <div className="w-full flex items-center justify-between gap-4">
           {/* Left Side: Astronaut Helmet Icon + Title with Comet Sweep */}
           <div className="flex items-center gap-3 sm:gap-4 shrink-0">
             {/* SVG Astronaut Helmet Icon with gold visor, reflections & beacon */}
@@ -201,14 +201,14 @@ export function Header({ activeSection: activeSectionProp, onSectionChange, onNa
                           e.preventDefault();
                           handleNavigate(item.id);
                         }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-oxanium text-xs font-semibold tracking-wider transition-all duration-200 select-none border ${
+                        className={`flex items-center px-4 py-1.5 rounded-full font-['Outfit'] text-xs font-semibold tracking-wider transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] select-none border ${
                           isActive
-                            ? 'text-[#f4f8ff] bg-cyan-500/15 border-cyan-400/50 shadow-[0_0_12px_rgba(0,255,204,0.25)]'
-                            : 'text-slate-400 hover:text-white hover:bg-white/5 border-transparent'
+                            ? 'text-white bg-white/10 border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_0_15px_rgba(0,255,204,0.2)]'
+                            : 'text-slate-400 hover:text-white hover:bg-white/[0.05] border-transparent'
                         }`}
                         aria-current={isActive ? 'page' : undefined}
                       >
-                        <span>{item.label}</span>
+                        <span className="tracking-widest">{item.label}</span>
                       </a>
                     </li>
                   );

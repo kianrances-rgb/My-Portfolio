@@ -1,11 +1,11 @@
 import React, { useState, useRef } from 'react';
+import { Send, Copy, Check, ArrowUpRight } from 'lucide-react';
 import { contact } from '../../data/portfolioData';
 
 /**
  * MessageForm Component
- * Subspace Transmission Console Box with Gmail Dispatch URL Composer,
- * status indicator LEDs, clipboard copy helper with instant visual feedback,
- * and holographic encryption progress bar animation.
+ * Aerospace console chassis with precision glass inputs, telemetry feedback,
+ * and button-in-button Gmail dispatch actions.
  */
 export function MessageForm() {
   const recipientEmail = contact?.email || 'Kianrances@gmail.com';
@@ -18,7 +18,7 @@ export function MessageForm() {
   });
 
   const [statusText, setStatusText] = useState(
-    `STATUS: ONLINE - TARGET: ${recipientEmail.toLowerCase()}`
+    `ONLINE // TARGET: ${recipientEmail.toLowerCase()}`
   );
   const [hudFeedback, setHudFeedback] = useState({
     visible: false,
@@ -38,16 +38,16 @@ export function MessageForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 1. Copy Email Address Handler
+  // Copy Email Handler
   const handleCopyEmail = () => {
     const emailToCopy = recipientEmail;
 
     const onCopySuccess = () => {
       setCopiedState(true);
-      setStatusText('STATUS: CLIPBOARD ACCESS GRANTED - READY');
+      setStatusText('CLIPBOARD ACCESS GRANTED');
       setHudFeedback({
         visible: true,
-        text: `✦ EMAIL ADDRESS COPIED TO CLIPBOARD - ${emailToCopy}`,
+        text: `COPIED TO CLIPBOARD: ${emailToCopy}`,
         type: 'success',
         link: null,
       });
@@ -89,7 +89,7 @@ export function MessageForm() {
     }
   };
 
-  // 2. Direct Subspace Message Composer Directed to Gmail Compose
+  // Gmail Compose Submit
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -99,16 +99,15 @@ export function MessageForm() {
     const message = formData.body.trim();
 
     const subjectLine = subject
-      ? `[Cosmic Transmission] ${subject}`
-      : `[Cosmic Transmission] Message from ${name}`;
+      ? `[Portfolio Transmission] ${subject}`
+      : `[Portfolio Transmission] Message from ${name}`;
 
-    const bodyContent = `Transmitter Name: ${name}\nReturn Coordinates (Email): ${email}\n\nTransmission Payload:\n${message}\n\n--------------------------------------------------\nTransmitted via Kian Rances Cagadas Cosmic Terminal`;
+    const bodyContent = `Transmitter Name: ${name}\nReturn Coordinates: ${email}\n\nPayload:\n${message}\n\n---\nTransmitted via Kian Rances Cagadas Terminal`;
 
     const fullSubject = encodeURIComponent(subjectLine);
     const fullBody = encodeURIComponent(bodyContent);
     const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${recipientEmail.toLowerCase()}&su=${fullSubject}&body=${fullBody}`;
 
-    // Pre-open blank tab synchronously to prevent popup blockers
     let openedTab = null;
     try {
       openedTab = window.open('about:blank', '_blank');
@@ -116,10 +115,9 @@ export function MessageForm() {
       openedTab = null;
     }
 
-    // Holographic encryption sequence
     setIsTransmitting(true);
-    setProgressWidth(10);
-    setStatusText('STATUS: PREPARING GMAIL DISPATCH...');
+    setProgressWidth(15);
+    setStatusText('RESOLVING GMAIL DISPATCH...');
     setHudFeedback({
       visible: true,
       text: 'ENCRYPTING PAYLOAD & RESOLVING GMAIL... [25%]',
@@ -128,10 +126,10 @@ export function MessageForm() {
     });
 
     setTimeout(() => {
-      setProgressWidth(65);
+      setProgressWidth(70);
       setHudFeedback({
         visible: true,
-        text: `COORDINATES LOCKED: ${recipientEmail.toLowerCase()}... [65%]`,
+        text: `COORDINATES LOCKED: ${recipientEmail.toLowerCase()}... [70%]`,
         type: 'transmitting',
         link: null,
       });
@@ -139,12 +137,10 @@ export function MessageForm() {
 
     setTimeout(() => {
       setProgressWidth(100);
-      setStatusText(
-        `STATUS: DIRECTED TO GMAIL - RECIPIENT: ${recipientEmail.toLowerCase()}`
-      );
+      setStatusText(`DIRECTED TO GMAIL // ${recipientEmail.toLowerCase()}`);
       setHudFeedback({
         visible: true,
-        text: '✦ OPENING GMAIL COMPOSE...',
+        text: 'OPENING GMAIL COMPOSE...',
         type: 'success',
         link: gmailUrl,
       });
@@ -162,156 +158,189 @@ export function MessageForm() {
   };
 
   return (
-    <div className="transmission-console-box">
-      {/* Top Console Light Bar & Status */}
-      <div className="console-top-bar">
-        <div className="console-lights" aria-hidden="true">
-          <span className="clight c-red" />
-          <span className="clight c-yellow" />
-          <span className="clight c-green" />
-        </div>
-        <div className="console-title">
-          DIRECT MESSAGE COMPOSER - GMAIL DISPATCH
-        </div>
-        <div id="console-status-text" className="console-status">
-          {statusText}
-        </div>
-      </div>
+    <div className="p-2.5 sm:p-3 rounded-[2.25rem] bg-white/[0.03] border border-white/10 ring-1 ring-white/5 shadow-[0_25px_60px_rgba(0,0,0,0.8)] relative mt-12">
+      <div className="rounded-[calc(2.25rem-0.75rem)] bg-[#070a18]/95 p-6 sm:p-10 border border-white/5 relative overflow-hidden">
+        {/* Subtle ambient lighting */}
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"
+          aria-hidden="true"
+        />
 
-      {/* Interactive Form */}
-      <form
-        id="contact-form"
-        className="console-form"
-        onSubmit={handleSubmit}
-      >
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="sender-name">TRANSMITTER IDENTITY (NAME)</label>
+        {/* Top Console Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-8 border-b border-white/[0.08] gap-4 relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5" aria-hidden="true">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+            </div>
+            <span className="font-mono text-xs tracking-[0.2em] uppercase text-white/70">
+              MESSAGE COMPOSER
+            </span>
+          </div>
+
+          <div className="font-mono text-xs tracking-wider text-cyan-400/90 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <span>{statusText}</span>
+          </div>
+        </div>
+
+        {/* Console Form */}
+        <form id="contact-form" className="relative z-10 space-y-6" onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label
+                htmlFor="sender-name"
+                className="block font-mono text-[11px] tracking-[0.16em] uppercase text-white/50 mb-2"
+              >
+                Transmitter Identity (Name)
+              </label>
+              <input
+                type="text"
+                id="sender-name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="E.g. Dr. Jane Orbit"
+                required
+                className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/20 font-grotesk text-sm focus:outline-none focus:border-cyan-400/60 focus:bg-white/[0.06] focus:ring-1 focus:ring-cyan-400/30 transition-all"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="sender-email"
+                className="block font-mono text-[11px] tracking-[0.16em] uppercase text-white/50 mb-2"
+              >
+                Return Coordinates (Email)
+              </label>
+              <input
+                type="email"
+                id="sender-email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="E.g. jane@observatory.org"
+                required
+                className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/20 font-grotesk text-sm focus:outline-none focus:border-cyan-400/60 focus:bg-white/[0.06] focus:ring-1 focus:ring-cyan-400/30 transition-all"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="sender-subject"
+              className="block font-mono text-[11px] tracking-[0.16em] uppercase text-white/50 mb-2"
+            >
+              Transmission Frequency (Subject)
+            </label>
             <input
               type="text"
-              id="sender-name"
-              name="name"
-              value={formData.name}
+              id="sender-subject"
+              name="subject"
+              value={formData.subject}
               onChange={handleInputChange}
-              placeholder="E.g. Dr. Jane Orbit"
+              placeholder="Project Collaboration - Technical Inquiry"
               required
+              className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/20 font-grotesk text-sm focus:outline-none focus:border-cyan-400/60 focus:bg-white/[0.06] focus:ring-1 focus:ring-cyan-400/30 transition-all"
             />
           </div>
-          <div className="form-group">
-            <label htmlFor="sender-email">RETURN COORDINATES (EMAIL)</label>
-            <input
-              type="email"
-              id="sender-email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              placeholder="E.g. jane@observatory.org"
-              required
-            />
-          </div>
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="sender-subject">TRANSMISSION FREQUENCY (SUBJECT)</label>
-          <input
-            type="text"
-            id="sender-subject"
-            name="subject"
-            value={formData.subject}
-            onChange={handleInputChange}
-            placeholder="Project Collaboration - Technical Inquiry"
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="sender-message">TRANSMISSION PAYLOAD (MESSAGE)</label>
-          <textarea
-            id="sender-message"
-            name="body"
-            rows={4}
-            value={formData.body}
-            onChange={handleInputChange}
-            placeholder="Enter transmission message payload here..."
-            required
-          />
-        </div>
-
-        <div className="form-submit-row">
-          {/* Submit Action */}
-          <button
-            type="submit"
-            className="cosmic-btn primary-btn submit-btn"
-            id="send-transmission-btn"
-          >
-            <span>COMPOSE &amp; TRANSMIT VIA GMAIL</span>
-            <svg
-              className="btn-arrow w-4 h-4 ml-1.5 transition-transform duration-200"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
+          <div>
+            <label
+              htmlFor="sender-message"
+              className="block font-mono text-[11px] tracking-[0.16em] uppercase text-white/50 mb-2"
             >
-              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-            </svg>
-          </button>
+              Transmission Payload (Message)
+            </label>
+            <textarea
+              id="sender-message"
+              name="body"
+              rows={4}
+              value={formData.body}
+              onChange={handleInputChange}
+              placeholder="Enter message payload here..."
+              required
+              className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-white placeholder-white/20 font-grotesk text-sm focus:outline-none focus:border-cyan-400/60 focus:bg-white/[0.06] focus:ring-1 focus:ring-cyan-400/30 transition-all resize-y"
+            />
+          </div>
 
-          {/* Secondary Action: Copy Email */}
-          <button
-            type="button"
-            className="cosmic-btn secondary-btn"
-            id="copy-email-btn"
-            title="Copy email address to clipboard"
-            onClick={handleCopyEmail}
-            style={
-              copiedState
-                ? { borderColor: '#00ffcc', color: '#00ffcc' }
-                : undefined
-            }
-          >
-            <span id="copy-email-text">
-              {copiedState ? 'COPIED TO CLIPBOARD! ✦' : 'COPY EMAIL ADDRESS'}
-            </span>
-          </button>
-        </div>
+          {/* Action Row */}
+          <div className="flex flex-wrap items-center gap-4 pt-4">
+            {/* Primary Submit Button-in-Button */}
+            <button
+              type="submit"
+              id="send-transmission-btn"
+              className="inline-flex items-center justify-between gap-3 px-6 py-3.5 rounded-full bg-white text-black font-grotesk text-xs font-semibold tracking-wider uppercase hover:bg-cyan-300 transition-all duration-300 group cursor-pointer shadow-[0_0_25px_rgba(255,255,255,0.2)]"
+            >
+              <span>Transmit via Gmail</span>
+              <div className="w-7 h-7 rounded-full bg-black/10 flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform">
+                <Send className="w-3.5 h-3.5 text-black" />
+              </div>
+            </button>
 
-        {/* In-Console Holographic Feedback HUD & Progress Bar */}
-        <div
-          id="transmission-progress-bar"
-          className={`transmission-progress-bar ${isTransmitting ? 'active' : ''}`}
-          aria-hidden="true"
-        >
-          <div
-            id="transmission-progress-fill"
-            className="progress-fill"
-            style={{ width: `${progressWidth}%` }}
-          />
-        </div>
+            {/* Secondary Copy Button */}
+            <button
+              type="button"
+              id="copy-email-btn"
+              onClick={handleCopyEmail}
+              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-white/[0.04] border border-white/10 text-white font-grotesk text-xs font-medium tracking-wider uppercase hover:bg-white/[0.08] hover:border-white/20 transition-all cursor-pointer"
+            >
+              {copiedState ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span className="text-emerald-300">Copied to Clipboard</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 text-white/60" />
+                  <span>Copy Direct Email</span>
+                </>
+              )}
+            </button>
+          </div>
 
-        <div
-          id="transmission-hud-feedback"
-          className={`transmission-hud-feedback ${
-            hudFeedback.visible ? 'visible' : ''
-          } ${hudFeedback.type}`}
-          role="status"
-          aria-live="polite"
-        >
-          {hudFeedback.link ? (
-            <>
-              {hudFeedback.text}
-              <a
-                href={hudFeedback.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[#00ffcc] underline font-bold"
-              >
-                CLICK HERE IF GMAIL DID NOT OPEN AUTOMATICALLY
-              </a>
-            </>
-          ) : (
-            hudFeedback.text
+          {/* Holographic Progress Bar */}
+          {isTransmitting && (
+            <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden mt-4">
+              <div
+                className="h-full bg-gradient-to-r from-cyan-400 to-purple-400 transition-all duration-300"
+                style={{ width: `${progressWidth}%` }}
+              />
+            </div>
           )}
-        </div>
-      </form>
+
+          {/* Feedback HUD */}
+          {hudFeedback.visible && (
+            <div
+              className={`p-4 rounded-xl border text-xs font-mono tracking-wide ${
+                hudFeedback.type === 'success'
+                  ? 'bg-cyan-950/40 border-cyan-400/40 text-cyan-200'
+                  : 'bg-white/[0.03] border-white/10 text-white/80'
+              }`}
+              role="status"
+              aria-live="polite"
+            >
+              {hudFeedback.link ? (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span>{hudFeedback.text}</span>
+                  <a
+                    href={hudFeedback.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-cyan-300 underline font-bold hover:text-cyan-200"
+                  >
+                    <span>Manual Link</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              ) : (
+                hudFeedback.text
+              )}
+            </div>
+          )}
+        </form>
+      </div>
     </div>
   );
 }

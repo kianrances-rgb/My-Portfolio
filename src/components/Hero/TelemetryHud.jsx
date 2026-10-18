@@ -86,24 +86,24 @@ export function TelemetryHud({
   return (
     <div
       id="gravitational-telemetry"
-      className={`gravitational-telemetry flex flex-wrap items-center justify-center gap-4 sm:gap-6 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-[#060916]/85 border border-[rgba(140,180,255,0.18)] backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.6)] ${className}`}
+      className={`gravitational-telemetry inline-flex flex-wrap items-center justify-center gap-4 sm:gap-6 px-5 sm:px-6 py-2.5 rounded-full bg-white/[0.03] border border-white/10 ring-1 ring-white/5 backdrop-blur-xl shadow-[0_10px_35px_rgba(0,0,0,0.7)] ${className}`}
       aria-live="polite"
       role="region"
       aria-label="Gravitational Singularity Telemetry"
     >
       {/* 1. Gravitational Shear */}
-      <div className="telemetry-item flex items-center gap-2 text-xs tracking-wider">
-        <span className="tel-label text-cosmic-dim uppercase font-medium">
-          GRAVITATIONAL SHEAR:
+      <div className="telemetry-item flex items-center gap-2.5 text-xs font-mono">
+        <span className="text-white/40 uppercase tracking-wider text-[11px]">
+          SHEAR:
         </span>
         <span
           id="tel-shear"
-          className="tel-value text-cosmic-cyan font-mono font-bold"
+          className="text-cyan-300 font-bold"
         >
           {shearPercentage}%
         </span>
         <div
-          className="tel-bar w-14 sm:w-16 h-1.5 bg-[#141a33] rounded-full overflow-hidden border border-[rgba(140,180,255,0.15)]"
+          className="tel-bar w-12 sm:w-16 h-1.5 bg-white/10 rounded-full overflow-hidden"
           aria-hidden="true"
         >
           <div
@@ -118,26 +118,26 @@ export function TelemetryHud({
       </div>
 
       {/* 2. Event Horizon Distance */}
-      <div className="telemetry-item flex items-center gap-2 text-xs tracking-wider border-l border-[rgba(140,180,255,0.14)] pl-4 sm:pl-6">
-        <span className="tel-label text-cosmic-dim uppercase font-medium">
-          EVENT HORIZON DISTANCE:
+      <div className="telemetry-item flex items-center gap-2 text-xs font-mono border-l border-white/10 pl-4 sm:pl-6">
+        <span className="text-white/40 uppercase tracking-wider text-[11px]">
+          DISTANCE:
         </span>
         <span
           id="tel-distance"
-          className="tel-value text-[#5de6ff] font-mono font-bold"
+          className="text-white/80 font-bold"
         >
           {internalDistance}
         </span>
       </div>
 
       {/* 3. Spaghettification Status */}
-      <div className="telemetry-item flex items-center gap-2 text-xs tracking-wider border-l border-[rgba(140,180,255,0.14)] pl-4 sm:pl-6">
-        <span className="tel-label text-cosmic-dim uppercase font-medium">
-          SPAGHETTIFICATION:
+      <div className="telemetry-item flex items-center gap-2 text-xs font-mono border-l border-white/10 pl-4 sm:pl-6">
+        <span className="text-white/40 uppercase tracking-wider text-[11px]">
+          STATUS:
         </span>
         <span
           id="tel-status"
-          className={`tel-value font-mono font-bold transition-colors duration-200 ${statusColorClass} ${
+          className={`font-bold transition-colors duration-200 ${statusColorClass} ${
             isAlertActive ? 'drop-shadow-[0_0_8px_#ff3355]' : 'drop-shadow-[0_0_6px_rgba(0,255,204,0.4)]'
           }`}
         >

@@ -82,7 +82,7 @@ export function App() {
       <Header activeSection={activeSection} onNavigate={handleNavigate} />
 
       {/* 6. Main Content Viewports */}
-      <main id="main-content" className="relative z-10 focus:outline-none" tabIndex={-1}>
+      <main id="main-content" className="relative z-10 focus:outline-none overflow-x-hidden w-full max-w-full" tabIndex={-1}>
         {/* Sector 00: Singularity (Hero, Relativistic Black Hole, Telemetry HUD) */}
         <Singularity />
 

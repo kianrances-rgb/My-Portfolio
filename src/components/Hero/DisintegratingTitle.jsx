@@ -301,12 +301,12 @@ export function DisintegratingTitle() {
       {/* 2. Lower Title Container placed in the lower middle of #intro */}
       <div
         ref={containerRef}
-        className="disintegrating-title-container relative z-20 w-full max-w-5xl flex flex-col items-center justify-center text-center select-none pointer-events-auto mt-auto pb-10"
-        aria-label="Kian Rances Cagadas - Architect / Junior Web & Game Developer"
+        className="disintegrating-title-container relative z-20 w-full max-w-6xl flex flex-col items-center justify-center text-center select-none pointer-events-auto mt-auto pb-12 sm:pb-16 px-4"
+        aria-label="Kian Rances Cagadas - Software Developer, Systems Architect & Cosmic Explorer"
       >
-        <div className="relative flex flex-col items-center max-w-4xl px-4">
+        <div className="relative flex flex-col items-center w-full max-w-5xl">
           {/* Main Pure White Disintegrating Name with per-letter base & dissolving fringe */}
-          <h1 className="disintegrating-name font-['Orbitron'] font-black text-3xl sm:text-5xl md:text-6xl lg:text-7xl tracking-[0.16em] uppercase text-white select-none relative flex flex-wrap items-center justify-center">
+          <h1 className="disintegrating-name font-['Orbitron'] font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-[0.14em] uppercase text-white select-none relative flex flex-wrap items-center justify-center leading-none">
             {WORDS.map((w, wIdx) => (
               <span key={w.key} className="inline-flex items-center whitespace-nowrap">
                 {w.text.split('').map((char, cIdx) => (
@@ -334,12 +334,31 @@ export function DisintegratingTitle() {
             ))}
           </h1>
 
-          {/* Subtle Status Tag */}
-          <div className="status-tag-pill mt-3 sm:mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#050814]/90 border border-white/20 backdrop-blur-md shadow-[0_0_20px_rgba(255,255,255,0.12)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse shadow-[0_0_8px_#ffffff]" />
-            <span className="font-['Share_Tech_Mono',monospace] text-xs sm:text-sm font-semibold tracking-[0.22em] text-white/90 uppercase">
-              ARCHITECT / JUNIOR WEB &amp; GAME DEVELOPER
-            </span>
+          {/* Minimalist Editorial Subtitle */}
+          <p className="font-['Outfit'] text-xs sm:text-sm md:text-base font-medium tracking-[0.22em] text-[#00ffcc] uppercase mt-5 mb-8 max-w-2xl mx-auto">
+            Software Developer, Systems Architect &amp; Cosmic Explorer
+          </p>
+
+          {/* Dual High-Contrast Button-in-Button CTAs */}
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <a
+              href="#galaxy"
+              className="group relative inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-[#00ffcc] text-[#030308] font-['Space_Grotesk'] font-bold text-xs sm:text-sm tracking-wider uppercase transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-white hover:shadow-[0_0_30px_rgba(0,255,204,0.5)] active:scale-[0.98]"
+            >
+              <span>Explore Education</span>
+              <span className="w-8 h-8 rounded-full bg-black/15 flex items-center justify-center text-[#030308] font-bold group-hover:translate-y-0.5 transition-transform duration-300">
+                ↓
+              </span>
+            </a>
+            <a
+              href="#contact"
+              className="group relative inline-flex items-center gap-3 pl-6 pr-2 py-2 rounded-full bg-white/[0.06] border border-white/15 text-white font-['Space_Grotesk'] font-bold text-xs sm:text-sm tracking-wider uppercase transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-white/10 hover:border-white/30 backdrop-blur-md active:scale-[0.98]"
+            >
+              <span>Initiate Contact</span>
+              <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white font-bold group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300">
+                ↗
+              </span>
+            </a>
           </div>
         </div>
       </div>

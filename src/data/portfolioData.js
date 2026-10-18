@@ -151,7 +151,7 @@ export const contact = {
       label: "Email Address",
       value: "Kianrances@gmail.com",
       instruction: "Click to transmit an email directly to this address",
-      btnText: "TRANSMIT VIA EMAIL ↗",
+      btnText: "Transmit via Email",
       href: "mailto:Kianrances@gmail.com",
     },
     {
@@ -159,7 +159,7 @@ export const contact = {
       label: "GitHub Account",
       value: "@kianrances-rgb",
       instruction: "Click to explore repositories, commits & codebase",
-      btnText: "OPEN GITHUB PROFILE ↗",
+      btnText: "Open GitHub Profile",
       href: "https://github.com/kianrances-rgb",
     },
     {
@@ -167,18 +167,18 @@ export const contact = {
       label: "Facebook Profile",
       value: "https://www.facebook.com/100024036827109/",
       instruction: "Click to visit profile page and initiate message",
-      btnText: "OPEN FACEBOOK PAGE ↗",
+      btnText: "Open Facebook Profile",
       href: "https://www.facebook.com/100024036827109/",
     },
   ],
 };
 
 export const mascotGreetings = [
-  "Hi! I'm Astronaut Kian! 👨‍🚀",
-  "To the Space and Beyond! 🚀🌌",
-  "Systems Operational - All Cores Online ⚡",
-  "Exploring the Event Horizon... 🕳️",
-  "Welcome to My Cosmic Portfolio! ✨",
+  "Hi! I'm Astronaut Kian.",
+  "To the Space and Beyond.",
+  "Systems Operational - All Cores Online",
+  "Exploring the Event Horizon...",
+  "Welcome to My Cosmic Portfolio.",
 ];
 
 const portfolioData = {

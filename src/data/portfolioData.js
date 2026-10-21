@@ -26,7 +26,7 @@ export const education = [
     timeRange: "2023 — PRESENT",
     institution: "ICCT Colleges Inc",
     department: "College of Engineering and Digital Technology",
-    image: "/assets/images/galaxy-college.jpg",
+    image: "./assets/images/galaxy-college.jpg",
     summary:
       "Advanced academic studies in digital technology, computer engineering, distributed architecture, and software systems. Developing cutting-edge computational logic, scalable database systems, and human-centered user experiences.",
     highlights: [
@@ -54,7 +54,7 @@ export const education = [
     timeRange: "2017 — 2018",
     institution: "DAEHAN College of Business and Technology Inc",
     department: "Information, Communication and Technology Strand",
-    image: "/assets/images/galaxy-senior-high.jpg",
+    image: "./assets/images/galaxy-senior-high.jpg",
     summary:
       "Specialized academic and technical curriculum within the Information, Communication and Technology (ICT) track, building fundamental competence in algorithmic problem solving, computer systems, and digital networks.",
     highlights: [
